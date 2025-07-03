@@ -34,3 +34,5 @@ build/
 
 *.log
 /target
+.env
+application-local.properties
