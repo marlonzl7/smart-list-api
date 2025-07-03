@@ -1,1 +1,1 @@
-# smart-list
+# Smart List
