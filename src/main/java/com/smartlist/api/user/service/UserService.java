@@ -12,18 +12,22 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class UserService {
-    private final UserRepository userRepository;
+    private final PasswordStrengthService passwordStrengthService;
     private final PasswordEncoder passwordEncoder;
+    private final UserRepository userRepository;
 
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
-        this.userRepository = userRepository;
+    public UserService(PasswordStrengthService passwordStrengthService, PasswordEncoder passwordEncoder, UserRepository userRepository) {
+        this.passwordStrengthService = passwordStrengthService;
         this.passwordEncoder = passwordEncoder;
+        this.userRepository = userRepository;
     }
 
     public void register(RegisterDTO dto) {
         if (existsByEmail(dto.email())) {
             throw new EmailAlreadyExistsException("001", "Email já em uso.");
         }
+
+        passwordStrengthService.validatePasswordStrength(dto.password());
 
         if (
             (dto.notificationPreference() == NotificationPreference.WHATSAPP ||
