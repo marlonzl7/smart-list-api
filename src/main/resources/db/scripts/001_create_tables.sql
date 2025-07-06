@@ -5,5 +5,7 @@ CREATE TABLE IF NOT EXISTS users (
     password VARCHAR(255) NOT NULL,
     phone_number VARCHAR(20),
     notification_preference VARCHAR(20) NOT NULL DEFAULT 'EMAIL',
-    theme_preference VARCHAR(20) NOT NULL DEFAULT 'SYSTEM'
+    theme_preference VARCHAR(20) NOT NULL DEFAULT 'SYSTEM',
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
