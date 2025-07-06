@@ -1,4 +1,4 @@
-package com.smartlist.api.user;
+package com.smartlist.api.user.enums;
 
 public enum ThemePreference {
     LIGHT,

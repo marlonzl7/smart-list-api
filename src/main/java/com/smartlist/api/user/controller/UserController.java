@@ -1,5 +1,7 @@
-package com.smartlist.api.user;
+package com.smartlist.api.user.controller;
 
+import com.smartlist.api.user.dto.RegisterDTO;
+import com.smartlist.api.user.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;

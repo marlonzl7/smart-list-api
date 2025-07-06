@@ -1,5 +1,7 @@
-package com.smartlist.api.user;
+package com.smartlist.api.user.model;
 
+import com.smartlist.api.user.enums.NotificationPreference;
+import com.smartlist.api.user.enums.ThemePreference;
 import jakarta.persistence.*;
 import lombok.*;
 

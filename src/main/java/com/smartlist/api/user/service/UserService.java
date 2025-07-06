@@ -1,7 +1,12 @@
-package com.smartlist.api.user;
+package com.smartlist.api.user.service;
 
 import com.smartlist.api.exceptions.EmailAlreadyExistsException;
 import com.smartlist.api.exceptions.PhoneNumberRequiredException;
+import com.smartlist.api.user.dto.RegisterDTO;
+import com.smartlist.api.user.enums.NotificationPreference;
+import com.smartlist.api.user.enums.ThemePreference;
+import com.smartlist.api.user.model.User;
+import com.smartlist.api.user.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
