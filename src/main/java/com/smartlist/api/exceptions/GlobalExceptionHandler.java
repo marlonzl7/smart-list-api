@@ -20,4 +20,11 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.UNPROCESSABLE_ENTITY)
                 .body(new ErrorResponse(ex.getCode(), ex.getMessage()));
     }
+
+    @ExceptionHandler(WeakPasswordException.class)
+    public ResponseEntity<ErrorResponse> handleWeakPassword(WeakPasswordException ex) {
+        return  ResponseEntity
+                .status(HttpStatus.UNPROCESSABLE_ENTITY)
+                .body(new ErrorResponse(ex.getCode(), ex.getMessage()));
+    }
 }
