@@ -36,3 +36,4 @@ build/
 /target
 .env
 application-local.properties
+reset-db.sh
