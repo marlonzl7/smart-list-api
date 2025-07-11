@@ -1,4 +1,4 @@
-package com.smartlist.api.infra.security;
+package com.smartlist.api.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
