@@ -42,7 +42,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<ErrorResponse> handleHttpNotReadableException(HttpMessageNotReadableException ex) {
+    public ResponseEntity<ErrorResponse> handleHttpNotReadable(HttpMessageNotReadableException ex) {
         Throwable cause = ex.getCause();
 
         if (cause instanceof InvalidFormatException invalidFormatEx) {
@@ -60,5 +60,11 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.BAD_GATEWAY)
                 .body(new ErrorResponse("005", "Requisição mal formatada ou dados inválidos"));
+    }
+
+    public ResponseEntity<ErrorResponse> handleInvalidJwt(InvalidJwtException ex) {
+        return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .body(new ErrorResponse(ex.getCode(), ex.getMessage()));
     }
 }
