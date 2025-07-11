@@ -36,12 +36,21 @@ public class JwtUtils {
                 .compact();
     }
 
-    public static boolean isValidToken(String token) {
+    public static Claims getClaimsFromToken(String token) {
         try {
-            Jwts.parser()
+            return Jwts.parser()
                     .verifyWith(KEY)
                     .build()
-                    .parseSignedClaims(token);
+                    .parseSignedClaims(token)
+                    .getPayload();
+        } catch (JwtException e) {
+            return null;
+        }
+    }
+
+    public static boolean isValidToken(String token) {
+        try {
+            getClaimsFromToken(token);
             return true;
         } catch (JwtException e) {
             return false;
@@ -50,13 +59,7 @@ public class JwtUtils {
 
     public static String getUsernameFromToken(String token) {
         try {
-            Claims claims = Jwts.parser()
-                    .verifyWith(KEY)
-                    .build()
-                    .parseSignedClaims(token)
-                    .getPayload();
-
-            return claims.get("sub", String.class);
+            return getClaimsFromToken(token).get("sub", String.class);
         } catch (JwtException e) {
             return null;
         }
@@ -64,13 +67,7 @@ public class JwtUtils {
 
     public static Date getExpirationFromToken(String token) {
         try {
-            Claims claims = Jwts.parser()
-                    .verifyWith(KEY)
-                    .build()
-                    .parseSignedClaims(token)
-                    .getPayload();
-
-            return claims.get("exp", Date.class);
+            return getClaimsFromToken(token).get("exp", Date.class);
         } catch (JwtException e) {
             return null;
         }
