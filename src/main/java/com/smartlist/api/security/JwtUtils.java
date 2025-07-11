@@ -1,5 +1,6 @@
 package com.smartlist.api.security;
 
+import com.smartlist.api.exceptions.InvalidJwtException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
@@ -44,7 +45,7 @@ public class JwtUtils {
                     .parseSignedClaims(token)
                     .getPayload();
         } catch (JwtException e) {
-            return null;
+            throw new InvalidJwtException("007", "Token JWT inválido ou expirado");
         }
     }
 
