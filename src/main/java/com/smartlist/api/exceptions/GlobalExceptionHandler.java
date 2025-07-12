@@ -58,11 +58,17 @@ public class GlobalExceptionHandler {
         }
 
         return ResponseEntity
-                .status(HttpStatus.BAD_GATEWAY)
+                .status(HttpStatus.BAD_REQUEST)
                 .body(new ErrorResponse("005", "Requisição mal formatada ou dados inválidos"));
     }
 
     public ResponseEntity<ErrorResponse> handleInvalidJwt(InvalidJwtException ex) {
+        return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .body(new ErrorResponse(ex.getCode(), ex.getMessage()));
+    }
+
+    public ResponseEntity<ErrorResponse> handleInvalidCredentials(InvalidCredentials ex) {
         return ResponseEntity
                 .status(HttpStatus.UNAUTHORIZED)
                 .body(new ErrorResponse(ex.getCode(), ex.getMessage()));
