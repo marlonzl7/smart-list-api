@@ -5,18 +5,22 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.stereotype.Component;
+
 import javax.crypto.SecretKey;
 import java.util.Date;
 import java.util.UUID;
 
+@Component
 public class JwtUtils {
+
     private static final String SECRET = "chave-secreta-beeeeeeem-longa-com-mais-de-64-caracteres-para-HS256!!";
     private static final SecretKey KEY = Keys.hmacShaKeyFor(SECRET.getBytes());
 
     private static final long ACCESS_TOKEN_EXPIRATION = 15 * 60 * 1000; // 15 min
     private static final long REFRESH_TOKEN_EXPIRATION = 7 * 24 * 60 * 60 * 1000; // 7 dias
 
-    public static String generateAccessToken(String username) {
+    public String generateAccessToken(String username) {
         long now = System.currentTimeMillis();
         return Jwts.builder()
                 .claim("sub", username)
@@ -26,7 +30,7 @@ public class JwtUtils {
                 .compact();
     }
 
-    public static String generateRefreshToken(String username) {
+    public String generateRefreshToken(String username) {
         long now = System.currentTimeMillis();
         return Jwts.builder()
                 .claim("sub", username)
@@ -37,7 +41,7 @@ public class JwtUtils {
                 .compact();
     }
 
-    public static Claims getClaimsFromToken(String token) {
+    public Claims getClaimsFromToken(String token) {
         try {
             return Jwts.parser()
                     .verifyWith(KEY)
@@ -49,7 +53,7 @@ public class JwtUtils {
         }
     }
 
-    public static boolean isValidToken(String token) {
+    public boolean isValidToken(String token) {
         try {
             getClaimsFromToken(token);
             return true;
@@ -58,7 +62,7 @@ public class JwtUtils {
         }
     }
 
-    public static String getUsernameFromToken(String token) {
+    public String getUsernameFromToken(String token) {
         try {
             return getClaimsFromToken(token).get("sub", String.class);
         } catch (JwtException e) {
@@ -66,7 +70,7 @@ public class JwtUtils {
         }
     }
 
-    public static Date getExpirationFromToken(String token) {
+    public Date getExpirationFromToken(String token) {
         try {
             return getClaimsFromToken(token).get("exp", Date.class);
         } catch (JwtException e) {
