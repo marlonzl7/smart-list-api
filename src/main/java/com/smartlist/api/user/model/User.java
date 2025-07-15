@@ -5,6 +5,8 @@ import com.smartlist.api.user.enums.ThemePreference;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "users")
 @Data
@@ -34,6 +36,12 @@ public class User {
     @Enumerated(EnumType.STRING)
     @Column(name = "theme_preference")
     private ThemePreference themePreference;
+
+    @Column(name = "created_at", updatable = false, insertable = false)
+    private LocalDateTime createdAt;
+
+    @Column(name = "updated_at", updatable = false, insertable = false)
+    private LocalDateTime updatedAt;
 
     public User(String email, String password) {
         this.email = email;
