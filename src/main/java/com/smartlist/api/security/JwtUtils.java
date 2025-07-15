@@ -36,7 +36,7 @@ public class JwtUtils {
                 .claim("sub", username)
                 .claim("iat", new Date(now))
                 .claim("exp", new Date(now + REFRESH_TOKEN_EXPIRATION))
-                .claim("jid", UUID.randomUUID().toString())
+                .claim("jti", UUID.randomUUID().toString())
                 .signWith(KEY)
                 .compact();
     }
