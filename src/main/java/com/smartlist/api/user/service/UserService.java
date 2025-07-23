@@ -7,11 +7,13 @@ import com.smartlist.api.user.enums.NotificationPreference;
 import com.smartlist.api.user.enums.ThemePreference;
 import com.smartlist.api.user.model.User;
 import com.smartlist.api.user.repository.UserRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
+@Slf4j
 @Service
 public class UserService {
     private final PasswordStrengthService passwordStrengthService;
@@ -25,10 +27,14 @@ public class UserService {
     }
 
     public void register(RegisterDTO dto) {
+        log.info("Iniciado cadastro de usuário para email: {}", dto.email());
+
         if (existsByEmail(dto.email())) {
+            log.error("Tentativa de cadastro com email já registrado. Email: {}", dto.email());
             throw new EmailAlreadyExistsException("001", "Email já em uso.");
         }
 
+        log.debug("Validando força de senha para cadastro do usuário email: {}", dto.email());
         passwordStrengthService.validatePasswordStrength(dto.password());
 
         if (
@@ -36,6 +42,7 @@ public class UserService {
              dto.notificationPreference() == NotificationPreference.BOTH) &&
             (dto.phoneNumber() == null || dto.phoneNumber().isEmpty())
         ) {
+            log.error("Número de telefone omitido na tentativa de cadastro com a opção de notificação de preferência WHATSAPP ou BOTH. Email: {}", dto.email());
             throw new PhoneNumberRequiredException("002", "Número de telefone é obrigatório para notificações via Whatsapp ou ambas.");
         }
 
@@ -50,6 +57,8 @@ public class UserService {
         }
 
         userRepository.save(user);
+
+        log.info("Usuário cadastrado com sucesso. Email {}", user.getEmail());
     }
 
     public boolean existsByEmail(String email) {
