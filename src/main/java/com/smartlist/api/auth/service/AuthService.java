@@ -45,6 +45,8 @@ public class AuthService {
             throw new InvalidCredentialsException("008", "Credenciais inválidas");
         }
 
+        log.info("Usuário autenticado. Email: {}", user.getEmail());
+
         return true;
     }
 
