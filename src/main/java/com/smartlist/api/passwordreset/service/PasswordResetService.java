@@ -1,0 +1,157 @@
+package com.smartlist.api.passwordreset.service;
+
+import com.smartlist.api.email.service.EmailService;
+import com.smartlist.api.exceptions.BadRequestException;
+import com.smartlist.api.passwordreset.dto.PasswordExchangeDTO;
+import com.smartlist.api.passwordreset.dto.PasswordResetRequestDTO;
+import com.smartlist.api.passwordreset.enums.PasswordResetTokenStatus;
+import com.smartlist.api.passwordreset.model.PasswordResetToken;
+import com.smartlist.api.passwordreset.repository.PasswordResetTokenRepository;
+import com.smartlist.api.user.model.User;
+import com.smartlist.api.user.repository.UserRepository;
+import com.smartlist.api.user.service.PasswordStrengthService;
+import com.smartlist.api.user.service.UserService;
+import org.apache.commons.validator.routines.InetAddressValidator;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
+import java.time.Instant;
+import java.util.UUID;
+
+@Service
+public class PasswordResetService {
+    private final PasswordResetTokenRepository passwordResetTokenRepository;
+    private final UserService userService;
+    private final EmailService emailService;
+    private final PasswordStrengthService passwordStrengthService;
+    private final PasswordEncoder passwordEncoder;
+    private final UserRepository userRepository;
+
+    @Value("${password.reset.expiration-seconds:600}")
+    private long tokenExpirationSeconds; // 10 min
+
+    @Value("${password.reset.link}")
+    private String passwordResetLink;
+
+    @Value("${password.reset.rate-limit.email}")
+    private int maxRequestsPerEmail;
+
+    @Value("${password.reset.rate-limit.ip}")
+    private int maxRequestsPerIp;
+
+    @Value("${password.reset.rate-limit.duration}")
+    private int rateLimitDurationSeconds;
+
+    public PasswordResetService(PasswordResetTokenRepository passwordResetTokenRepository, UserService userService, EmailService emailService, PasswordStrengthService passwordStrengthService, PasswordEncoder passwordEncoder, UserRepository userRepository) {
+        this.passwordResetTokenRepository = passwordResetTokenRepository;
+        this.userService = userService;
+        this.emailService = emailService;
+        this.passwordStrengthService = passwordStrengthService;
+        this.passwordEncoder = passwordEncoder;
+        this.userRepository = userRepository;
+    }
+
+    public void requestPasswordReset(PasswordResetRequestDTO passwordResetRequestDTO) {
+        validateRequestRateLimit(passwordResetRequestDTO.email(), passwordResetRequestDTO.requestIp());
+
+        var userOptional = userService.findByEmail(passwordResetRequestDTO.email());
+
+        if (userOptional.isEmpty()) {
+            // Adicionar log
+            return;
+        }
+
+        var user = userOptional.get();
+
+        PasswordResetToken passwordResetToken = generateAndSaveToken(user, passwordResetRequestDTO);
+
+        String resetLink = passwordResetLink + passwordResetToken.getToken();
+
+        emailService.sendPasswordResetEmail(user.getEmail(), resetLink);
+    }
+
+    private void validateRequestRateLimit(String email, String requestIp) {
+        Instant now = Instant.now();
+        Instant windowStart = now.minusSeconds(rateLimitDurationSeconds);
+
+        long emailCount = passwordResetTokenRepository.countByEmailAndCreatedAtAfter(email, windowStart);
+        if (emailCount >= maxRequestsPerEmail) {
+            throw new BadRequestException("017", "Muitas requisições de reset de senha com esse e-mail. Tente novamente em alguns minutos.");
+        }
+
+        validateRequestIp(requestIp, windowStart);
+    }
+
+    private void validateRequestIp(String requestIp, Instant windowStart) {
+        InetAddressValidator ipValidator = InetAddressValidator.getInstance();
+
+        if (!ipValidator.isValid(requestIp)) {
+            throw new BadRequestException("012", "Ip de origem inválido");
+        }
+
+        long ipCount = passwordResetTokenRepository.countByRequestIpAndCreatedAtAfter(requestIp, windowStart);
+        if (ipCount >= maxRequestsPerIp) {
+            throw new BadRequestException("018", "Muitas requisições de reset de senha com esse IP. Tente novamente em alguns minutos.");
+        }
+    }
+
+    private PasswordResetToken generateAndSaveToken(User user, PasswordResetRequestDTO dto) {
+        UUID token = generateResetToken();
+        Instant expiresAt = Instant.now().plusSeconds(tokenExpirationSeconds);
+
+        PasswordResetToken passwordResetToken = new PasswordResetToken();
+        passwordResetToken.setUser(user);
+        passwordResetToken.setEmail(user.getEmail());
+        passwordResetToken.setToken(token);
+        passwordResetToken.setExpiresAt(expiresAt);
+        passwordResetToken.setStatus(PasswordResetTokenStatus.PENDING);
+        passwordResetToken.setRequestIp(dto.requestIp());
+        passwordResetToken.setUserAgent(dto.userAgent());
+
+        return passwordResetTokenRepository.save(passwordResetToken);
+    }
+
+    private PasswordResetToken getValidToken(UUID token) {
+        PasswordResetToken resetToken = passwordResetTokenRepository.findByToken(token).orElseThrow(() -> new BadRequestException("013", "Token não encontrado"));
+
+        if (resetToken.getExpiresAt().isBefore(Instant.now())) {
+            resetToken.setStatus(PasswordResetTokenStatus.EXPIRED);
+            passwordResetTokenRepository.save(resetToken);
+            throw new BadRequestException("014", "Token expirado");
+        }
+
+        if (resetToken.getStatus() != PasswordResetTokenStatus.PENDING) {
+            throw new BadRequestException("015", "Token inválido ou já utilizado");
+        }
+
+        return resetToken;
+    }
+
+    public boolean validateToken(UUID token) {
+        getValidToken(token);
+        return true;
+    }
+
+    public void resetPassword(PasswordExchangeDTO passwordExchangeDTO) {
+        PasswordResetToken resetToken = getValidToken(passwordExchangeDTO.token());
+
+        String email = resetToken.getEmail();
+
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new BadRequestException("016", "Usuário não encontrado"));
+
+        passwordStrengthService.validatePasswordStrength(passwordExchangeDTO.newPassword());
+
+        resetToken.setStatus(PasswordResetTokenStatus.USED);
+
+        user.setPassword(passwordEncoder.encode(passwordExchangeDTO.newPassword()));
+
+        passwordResetTokenRepository.save(resetToken);
+
+        userRepository.save(user);
+    }
+
+    public UUID generateResetToken() {
+        return UUID.randomUUID();
+    }
+}
