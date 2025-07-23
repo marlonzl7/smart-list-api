@@ -5,12 +5,14 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 import java.util.Date;
 import java.util.UUID;
 
+@Slf4j
 @Component
 public class JwtUtils {
 
@@ -49,6 +51,7 @@ public class JwtUtils {
                     .parseSignedClaims(token)
                     .getPayload();
         } catch (JwtException e) {
+            log.warn("Token JWT inválido ou expirado: {}", e.getMessage());
             throw new InvalidJwtException("007", "Token JWT inválido ou expirado");
         }
     }
@@ -58,6 +61,7 @@ public class JwtUtils {
             getClaimsFromToken(token);
             return true;
         } catch (JwtException e) {
+
             return false;
         }
     }

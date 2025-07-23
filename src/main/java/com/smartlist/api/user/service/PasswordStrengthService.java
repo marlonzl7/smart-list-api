@@ -3,8 +3,10 @@ package com.smartlist.api.user.service;
 import com.nulabinc.zxcvbn.Strength;
 import com.nulabinc.zxcvbn.Zxcvbn;
 import com.smartlist.api.exceptions.WeakPasswordException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 public class PasswordStrengthService {
     private final Zxcvbn zxcvbn = new Zxcvbn();

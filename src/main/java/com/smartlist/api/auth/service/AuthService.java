@@ -12,10 +12,12 @@ import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import java.util.Optional;
 
+@Slf4j
 @Service
 public class AuthService {
     private final UserRepository userRepository;
@@ -31,9 +33,15 @@ public class AuthService {
     }
 
     public boolean authenticate(LoginDTO dto) {
-        User user = userRepository.findByEmail(dto.email()).orElseThrow(() -> new InvalidCredentialsException("008", "Credenciais inválidas"));
+        log.info("Iniciada tentativa de autenticação para email: {}", dto.email());
+
+        User user = userRepository.findByEmail(dto.email()).orElseThrow(() -> {
+            log.error("Usuário não encontrado com email: {}", dto.email());
+            return new InvalidCredentialsException("008", "Credenciais inválidas");
+        });
 
         if (!passwordEncoder.matches(dto.password(), user.getPassword())) {
+            log.error("Senha incorreta para email: {}", dto.email());
             throw new InvalidCredentialsException("008", "Credenciais inválidas");
         }
 
@@ -49,6 +57,7 @@ public class AuthService {
     }
 
     public void saveRefreshToken(String token, User user) {
+        log.info("Refresh Token criado para usuário ID: {}", user.getUserId());
         Claims claims = jwtUtils.getClaimsFromToken(token);
 
         RefreshToken refreshToken = new RefreshToken();
@@ -74,6 +83,7 @@ public class AuthService {
         }
 
         if (refreshToken == null || !jwtUtils.isValidToken(refreshToken)) {
+            log.error("Refresh token inválido ou ausente");
             throw new InvalidJwtException("009", "Refresh token inválido ou ausente");
         }
 
@@ -81,6 +91,7 @@ public class AuthService {
         Optional<RefreshToken> optionalToken = refreshTokenRepository.findByToken(refreshToken);
 
         if (optionalToken.isEmpty() || optionalToken.get().isUsed()) {
+            log.error("Refresh token já utilizado ou inexistente");
             throw new InvalidJwtException("010", "Refresh token já utilizado ou inexistente");
         }
 
@@ -97,6 +108,8 @@ public class AuthService {
         String cookieHeader = String.format("refreshToken=%s; HttpOnly; Path=/; Max-Age=%d; SameSite=Lax",
                 newRefreshToken, 7 * 24 * 60 * 60);
         response.setHeader("Set-Cookie", cookieHeader);
+
+        log.info("Refresh token rotacionado com sucesso para usuário ID: {}", user.getUserId());
 
         return newAccessToken;
     }
@@ -122,5 +135,7 @@ public class AuthService {
 
         String clearCookie = "refreshToken=; HttpOnly; Path=/; Max-Age=0; SameSite=Lax";
         response.setHeader("Set-Cookie", clearCookie);
+
+        log.info("Logout efetuado. Refresh token invalidado (se presente).");
     }
 }
