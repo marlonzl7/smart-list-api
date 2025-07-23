@@ -20,9 +20,8 @@ public class RefreshTokenService {
         refreshToken.setRefreshTokenId(claims.getId());
         refreshToken.setToken(token);
         refreshToken.setUser(user);
-        refreshToken.setCreatedAt(claims.getIssuedAt().toInstant());
-        refreshToken.setUpdatedAt(claims.getExpiration().toInstant());
         refreshToken.setUsed(false);
+        refreshToken.setExpiresAt(claims.getExpiration().toInstant());
 
         refreshTokenRepository.save(refreshToken);
     }
