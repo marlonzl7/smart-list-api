@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
-@Controller
+@RestController
 @RequestMapping("/reset-password")
 public class PasswordResetController {
     private final PasswordResetService passwordResetService;
