@@ -1,5 +1,7 @@
 package com.smartlist.api.passwordreset.service;
 
+import com.smartlist.api.config.PasswordResetProperties;
+import com.smartlist.api.config.RateLimitProperties;
 import com.smartlist.api.email.service.EmailService;
 import com.smartlist.api.exceptions.BadRequestException;
 import com.smartlist.api.passwordreset.dto.PasswordExchangeDTO;
@@ -13,7 +15,6 @@ import com.smartlist.api.user.service.PasswordStrengthService;
 import com.smartlist.api.user.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.validator.routines.InetAddressValidator;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -30,28 +31,33 @@ public class PasswordResetService {
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
 
-    @Value("${password.reset.expiration-seconds:600}")
-    private long tokenExpirationSeconds; // 10 min
+    private final long tokenExpirationSeconds; // 10 min
+    private final String passwordResetLink;
+    private final int maxRequestsPerEmail;
+    private final int maxRequestsPerIp;
+    private final int rateLimitDurationSeconds;
 
-    @Value("${password.reset.link}")
-    private String passwordResetLink;
-
-    @Value("${password.reset.rate-limit.email}")
-    private int maxRequestsPerEmail;
-
-    @Value("${password.reset.rate-limit.ip}")
-    private int maxRequestsPerIp;
-
-    @Value("${password.reset.rate-limit.duration}")
-    private int rateLimitDurationSeconds;
-
-    public PasswordResetService(PasswordResetTokenRepository passwordResetTokenRepository, UserService userService, EmailService emailService, PasswordStrengthService passwordStrengthService, PasswordEncoder passwordEncoder, UserRepository userRepository) {
+    public PasswordResetService(
+            PasswordResetTokenRepository passwordResetTokenRepository,
+            UserService userService,
+            EmailService emailService,
+            PasswordStrengthService passwordStrengthService,
+            PasswordEncoder passwordEncoder,
+            UserRepository userRepository,
+            PasswordResetProperties passwordResetProperties,
+            RateLimitProperties rateLimitProperties
+    ) {
         this.passwordResetTokenRepository = passwordResetTokenRepository;
         this.userService = userService;
         this.emailService = emailService;
         this.passwordStrengthService = passwordStrengthService;
         this.passwordEncoder = passwordEncoder;
         this.userRepository = userRepository;
+        this.tokenExpirationSeconds = passwordResetProperties.getExpirationSeconds();
+        this.passwordResetLink = passwordResetProperties.getLink();
+        this.maxRequestsPerEmail = rateLimitProperties.getEmail();
+        this.maxRequestsPerIp = rateLimitProperties.getIp();
+        this.rateLimitDurationSeconds = rateLimitProperties.getDuration();
     }
 
     public void requestPasswordReset(PasswordResetRequestDTO passwordResetRequestDTO) {
