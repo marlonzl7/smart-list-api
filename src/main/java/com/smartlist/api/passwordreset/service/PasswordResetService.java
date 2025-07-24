@@ -91,7 +91,7 @@ public class PasswordResetService {
         long emailCount = passwordResetTokenRepository.countByEmailAndCreatedAtAfter(email, windowStart);
         if (emailCount >= maxRequestsPerEmail) {
             log.warn("Rate limit excedido para email: {}. Requisições recentes: {}", email, emailCount);
-            throw new BadRequestException("017", "Muitas requisições de redefinição de senha com esse e-mail. Tente novamente em alguns minutos.");
+            throw new BadRequestException("P3001", "Muitas requisições de redefinição de senha com esse e-mail. Tente novamente em alguns minutos.");
         }
 
         validateRequestIp(requestIp, windowStart);
@@ -104,13 +104,13 @@ public class PasswordResetService {
 
         if (!ipValidator.isValid(requestIp)) {
             log.warn("IP de origem inválido: {}", requestIp);
-            throw new BadRequestException("012", "Ip de origem inválido");
+            throw new BadRequestException("P3002", "Ip de origem inválido");
         }
 
         long ipCount = passwordResetTokenRepository.countByRequestIpAndCreatedAtAfter(requestIp, windowStart);
         if (ipCount >= maxRequestsPerIp) {
             log.warn("Rate limit excedido para IP: {}. Requisições recentes: {}", requestIp, ipCount);
-            throw new BadRequestException("018", "Muitas requisições de redefinição de senha com esse IP. Tente novamente em alguns minutos.");
+            throw new BadRequestException("P3003", "Muitas requisições de redefinição de senha com esse IP. Tente novamente em alguns minutos.");
         }
     }
 
@@ -139,19 +139,19 @@ public class PasswordResetService {
         log.debug("Validando token de redefinição de senha recebido: {}", token);
         PasswordResetToken resetToken = passwordResetTokenRepository.findByToken(token).orElseThrow(() -> {
             log.warn("Token de redefinição de senha não encontrado: {}", token);
-            return new BadRequestException("013", "Token não encontrado");
+            return new BadRequestException("P3004", "Token não encontrado");
         });
 
         if (resetToken.getExpiresAt().isBefore(Instant.now())) {
             log.warn("Token expirado: {}", token);
             resetToken.setStatus(PasswordResetTokenStatus.EXPIRED);
             passwordResetTokenRepository.save(resetToken);
-            throw new BadRequestException("014", "Token expirado");
+            throw new BadRequestException("P3005", "Token expirado");
         }
 
         if (resetToken.getStatus() != PasswordResetTokenStatus.PENDING) {
             log.warn("Token inválido ou já utilizado: {}. Status atual: {}", token, resetToken.getStatus());
-            throw new BadRequestException("015", "Token inválido ou já utilizado");
+            throw new BadRequestException("P3006", "Token inválido ou já utilizado");
         }
 
         log.debug("Token validado com sucesso: {}", token);
@@ -173,7 +173,7 @@ public class PasswordResetService {
 
         User user = userRepository.findByEmail(email).orElseThrow(() -> {
             log.error("Usuário não encontrado com email: {}", email);
-            return new BadRequestException("016", "Usuário não encontrado");
+            return new BadRequestException("P3007", "Usuário não encontrado");
         });
 
         log.debug("Validando força da nova senha para o usuário ID: {}", user.getUserId());
