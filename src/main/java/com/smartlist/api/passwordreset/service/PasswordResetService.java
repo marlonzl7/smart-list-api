@@ -186,7 +186,7 @@ public class PasswordResetService {
         user.setPassword(passwordEncoder.encode(passwordExchangeDTO.newPassword()));
         userRepository.save(user);
 
-        log.info("Senha redefinida com sucesso para o usuário ID: {}", user.getUserId());
+        log.info("Senha redefinida com sucesso para o usuário ID: {} (email: {})", user.getUserId(), user.getEmail());
     }
 
     public UUID generateResetToken() {
