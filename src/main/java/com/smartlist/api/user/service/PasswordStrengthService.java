@@ -16,7 +16,7 @@ public class PasswordStrengthService {
 
         if (strength.getScore() < 3) {
             String warning = strength.getFeedback().getWarning();
-            throw new WeakPasswordException("003", "Senha fraca: " + (warning != null ? warning : "Escolha uma senha mais forte."));
+            throw new WeakPasswordException("S5001", "Senha fraca: " + (warning != null ? warning : "Escolha uma senha mais forte."));
         }
     }
 }

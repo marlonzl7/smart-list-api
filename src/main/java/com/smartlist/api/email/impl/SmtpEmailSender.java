@@ -36,7 +36,7 @@ public class SmtpEmailSender implements EmailSender {
 
             mailSender.send(message);
         } catch (MessagingException e) {
-            throw new EmailSendException("012", "Erro ao enviar e-mail via SMTP");
+            throw new EmailSendException("E2001", "Erro ao enviar e-mail");
         }
     }
 }
