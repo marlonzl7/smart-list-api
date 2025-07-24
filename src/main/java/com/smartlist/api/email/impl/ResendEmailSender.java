@@ -35,7 +35,7 @@ public class ResendEmailSender implements EmailSender {
         try {
             resend.emails().send(emailOptions);
         } catch (ResendException e) {
-            throw new EmailSendException("011", "Erro ao enviar email");
+            throw new EmailSendException("E2001", "Erro ao enviar e-mail");
         }
     }
 }

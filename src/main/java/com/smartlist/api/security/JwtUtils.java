@@ -57,7 +57,7 @@ public class JwtUtils {
                     .getPayload();
         } catch (JwtException e) {
             log.warn("Token JWT inválido ou expirado: {}", e.getMessage());
-            throw new InvalidJwtException("007", "Token JWT inválido ou expirado");
+            throw new InvalidJwtException("J4001", "Token JWT inválido ou expirado");
         }
     }
 

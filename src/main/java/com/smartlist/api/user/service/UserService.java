@@ -31,7 +31,7 @@ public class UserService {
 
         if (existsByEmail(dto.email())) {
             log.error("Tentativa de cadastro com email já registrado. Email: {}", dto.email());
-            throw new EmailAlreadyExistsException("001", "Email já em uso.");
+            throw new EmailAlreadyExistsException("U6001", "Email já em uso.");
         }
 
         log.debug("Validando força de senha para cadastro do usuário email: {}", dto.email());
@@ -43,7 +43,7 @@ public class UserService {
             (dto.phoneNumber() == null || dto.phoneNumber().isEmpty())
         ) {
             log.error("Número de telefone omitido na tentativa de cadastro com a opção de notificação de preferência WHATSAPP ou BOTH. Email: {}", dto.email());
-            throw new PhoneNumberRequiredException("002", "Número de telefone é obrigatório para notificações via Whatsapp ou ambas.");
+            throw new PhoneNumberRequiredException("U6002", "Número de telefone é obrigatório para notificações via Whatsapp ou ambas.");
         }
 
         User user = new User();
