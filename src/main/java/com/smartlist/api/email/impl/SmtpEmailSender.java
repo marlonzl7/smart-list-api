@@ -3,6 +3,7 @@ package com.smartlist.api.email.impl;
 import com.smartlist.api.email.core.EmailSender;
 import com.smartlist.api.exceptions.EmailSendException;
 import jakarta.mail.internet.MimeMessage;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -15,6 +16,9 @@ public class SmtpEmailSender implements EmailSender {
 
     private final JavaMailSender mailSender;
 
+    @Value("${spring.mail.from}")
+    private String from;
+
     public SmtpEmailSender(JavaMailSender mailSender) {
         this.mailSender = mailSender;
     }
@@ -25,6 +29,7 @@ public class SmtpEmailSender implements EmailSender {
 
         try {
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setFrom(from);
             helper.setTo(to);
             helper.setSubject(subject);
             helper.setText(html, true);
