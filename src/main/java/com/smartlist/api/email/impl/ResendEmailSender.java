@@ -7,9 +7,11 @@ import com.resend.services.emails.model.CreateEmailResponse;
 import com.smartlist.api.email.core.EmailSender;
 import com.smartlist.api.exceptions.EmailSendException;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
 @Service
+@Profile("resend")
 public class ResendEmailSender implements EmailSender {
 
     private final Resend resend;
