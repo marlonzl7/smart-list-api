@@ -37,12 +37,12 @@ public class AuthService {
 
         User user = userRepository.findByEmail(dto.email()).orElseThrow(() -> {
             log.error("Usuário não encontrado com email: {}", dto.email());
-            return new InvalidCredentialsException("008", "Credenciais inválidas");
+            return new InvalidCredentialsException("A1001", "Credenciais inválidas");
         });
 
         if (!passwordEncoder.matches(dto.password(), user.getPassword())) {
             log.error("Senha incorreta para email: {}", dto.email());
-            throw new InvalidCredentialsException("008", "Credenciais inválidas");
+            throw new InvalidCredentialsException("A1001", "Credenciais inválidas");
         }
 
         log.info("Autenticação efetuada com sucesso para mail: {}", user.getEmail());
@@ -86,7 +86,7 @@ public class AuthService {
 
         if (refreshToken == null || !jwtUtils.isValidToken(refreshToken)) {
             log.error("Refresh token inválido ou ausente");
-            throw new InvalidJwtException("009", "Refresh token inválido ou ausente");
+            throw new InvalidJwtException("A1002", "Refresh token inválido ou ausente");
         }
 
         Claims claims = jwtUtils.getClaimsFromToken(refreshToken);
@@ -94,7 +94,7 @@ public class AuthService {
 
         if (optionalToken.isEmpty() || optionalToken.get().isUsed()) {
             log.error("Refresh token já utilizado ou inexistente");
-            throw new InvalidJwtException("010", "Refresh token já utilizado ou inexistente");
+            throw new InvalidJwtException("A1003", "Refresh token já utilizado ou inexistente");
         }
 
         RefreshToken oldToken = optionalToken.get();
