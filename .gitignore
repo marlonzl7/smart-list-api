@@ -38,3 +38,5 @@ build/
 application-local.properties
 reset-db.sh
 tasks
+
+*.gz
