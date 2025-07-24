@@ -1,5 +1,6 @@
 package com.smartlist.api.security;
 
+import com.smartlist.api.config.JwtProperties;
 import com.smartlist.api.exceptions.InvalidJwtException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
@@ -16,19 +17,23 @@ import java.util.UUID;
 @Component
 public class JwtUtils {
 
-    private static final String SECRET = "chave-secreta-beeeeeeem-longa-com-mais-de-64-caracteres-para-HS256!!";
-    private static final SecretKey KEY = Keys.hmacShaKeyFor(SECRET.getBytes());
+    private final SecretKey key;
+    private final long accessTokenExpiration;
+    private final long refreshTokenExpiration;
 
-    private static final long ACCESS_TOKEN_EXPIRATION = 15 * 60 * 1000; // 15 min
-    private static final long REFRESH_TOKEN_EXPIRATION = 7 * 24 * 60 * 60 * 1000; // 7 dias
+    public JwtUtils(JwtProperties jwtProperties) {
+        this.key = Keys.hmacShaKeyFor(jwtProperties.getSecret().getBytes());
+        this.accessTokenExpiration = jwtProperties.getAccessTokenExpiration();
+        this.refreshTokenExpiration = jwtProperties.getRefreshTokenExpiration();
+    }
 
     public String generateAccessToken(String username) {
         long now = System.currentTimeMillis();
         return Jwts.builder()
                 .claim("sub", username)
                 .claim("iat", new Date(now))
-                .claim("exp", new Date(now + ACCESS_TOKEN_EXPIRATION))
-                .signWith(KEY)
+                .claim("exp", new Date(now + accessTokenExpiration))
+                .signWith(key)
                 .compact();
     }
 
@@ -37,16 +42,16 @@ public class JwtUtils {
         return Jwts.builder()
                 .claim("sub", username)
                 .claim("iat", new Date(now))
-                .claim("exp", new Date(now + REFRESH_TOKEN_EXPIRATION))
+                .claim("exp", new Date(now + refreshTokenExpiration))
                 .claim("jti", UUID.randomUUID().toString())
-                .signWith(KEY)
+                .signWith(key)
                 .compact();
     }
 
     public Claims getClaimsFromToken(String token) {
         try {
             return Jwts.parser()
-                    .verifyWith(KEY)
+                    .verifyWith(key)
                     .build()
                     .parseSignedClaims(token)
                     .getPayload();
