@@ -19,6 +19,7 @@ import java.util.UUID;
 public class PasswordResetToken {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "password_reset_token_id")
     private Long passwordResetTokenId;
 
     @ManyToOne(fetch = FetchType.LAZY)
