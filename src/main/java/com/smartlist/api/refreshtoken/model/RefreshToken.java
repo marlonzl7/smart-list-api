@@ -18,6 +18,7 @@ import java.time.Instant;
 public class RefreshToken {
 
     @Id
+    @Column(name = "refresh_token_id")
     private String refreshTokenId;
 
     @ManyToOne(fetch = FetchType.LAZY)
