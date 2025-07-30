@@ -1,6 +1,6 @@
 package com.smartlist.api.inventory.item.controller;
 
-import com.smartlist.api.common.dto.PageResponse;
+import com.smartlist.api.infra.common.dto.PageResponse;
 import com.smartlist.api.inventory.item.dto.ItemListResponseDTO;
 import com.smartlist.api.inventory.item.dto.ItemRegisterRequestDTO;
 import com.smartlist.api.inventory.item.dto.ItemUpdateRequestDTO;
@@ -14,8 +14,6 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 
 @RestController

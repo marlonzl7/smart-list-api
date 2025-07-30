@@ -1,4 +1,4 @@
-package com.smartlist.api.security;
+package com.smartlist.api.infra.security;
 
 import com.smartlist.api.infra.config.JwtProperties;
 import com.smartlist.api.exceptions.InvalidJwtException;

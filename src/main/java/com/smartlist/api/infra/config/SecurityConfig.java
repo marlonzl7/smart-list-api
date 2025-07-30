@@ -1,8 +1,7 @@
-package com.smartlist.api.config;
+package com.smartlist.api.infra.config;
 
-import com.smartlist.api.security.JwtAuthenticationFilter;
-import com.smartlist.api.security.JwtUtils;
-import com.smartlist.api.user.model.User;
+import com.smartlist.api.infra.security.JwtAuthenticationFilter;
+import com.smartlist.api.infra.security.JwtUtils;
 import com.smartlist.api.user.repository.UserRepository;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
