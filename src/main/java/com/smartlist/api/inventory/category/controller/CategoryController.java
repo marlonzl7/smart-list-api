@@ -1,6 +1,6 @@
 package com.smartlist.api.inventory.category.controller;
 
-import com.smartlist.api.common.dto.PageResponse;
+import com.smartlist.api.infra.common.dto.PageResponse;
 import com.smartlist.api.inventory.category.dto.CategoryRegisterRequestDTO;
 import com.smartlist.api.inventory.category.dto.CategoryUpdateRequestDTO;
 import com.smartlist.api.inventory.category.dto.CategoryListResponseDTO;

@@ -1,4 +1,4 @@
-package com.smartlist.api.config;
+package com.smartlist.api.infra.config;
 
 import lombok.Getter;
 import lombok.Setter;

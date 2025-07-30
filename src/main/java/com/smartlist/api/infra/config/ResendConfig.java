@@ -1,4 +1,4 @@
-package com.smartlist.api.config;
+package com.smartlist.api.infra.config;
 
 import com.resend.Resend;
 import org.springframework.beans.factory.annotation.Value;

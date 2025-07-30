@@ -1,4 +1,4 @@
-package com.smartlist.api.security;
+package com.smartlist.api.infra.security;
 
 import com.smartlist.api.user.model.User;
 import com.smartlist.api.user.repository.UserRepository;
@@ -13,7 +13,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.Collections;
 
 @Slf4j
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
