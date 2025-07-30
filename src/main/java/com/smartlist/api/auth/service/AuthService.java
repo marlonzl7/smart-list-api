@@ -5,7 +5,7 @@ import com.smartlist.api.exceptions.InvalidCredentialsException;
 import com.smartlist.api.exceptions.InvalidJwtException;
 import com.smartlist.api.refreshtoken.model.RefreshToken;
 import com.smartlist.api.refreshtoken.repository.RefreshTokenRepository;
-import com.smartlist.api.security.JwtUtils;
+import com.smartlist.api.infra.security.JwtUtils;
 import com.smartlist.api.user.model.User;
 import com.smartlist.api.user.repository.UserRepository;
 import io.jsonwebtoken.Claims;

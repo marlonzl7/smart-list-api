@@ -1,7 +1,8 @@
-package com.smartlist.api.config;
+package com.smartlist.api.infra.config;
 
-import com.smartlist.api.security.JwtAuthenticationFilter;
-import com.smartlist.api.security.JwtUtils;
+import com.smartlist.api.infra.security.JwtAuthenticationFilter;
+import com.smartlist.api.infra.security.JwtUtils;
+import com.smartlist.api.user.repository.UserRepository;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -23,14 +24,16 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JwtUtils jwtUtils;
+    private final UserRepository userRepository;
 
-    public SecurityConfig(JwtUtils jwtUtils) {
+    public SecurityConfig(JwtUtils jwtUtils, UserRepository userRepository) {
         this.jwtUtils = jwtUtils;
+        this.userRepository = userRepository;
     }
 
     @Bean
     public JwtAuthenticationFilter jwtAuthenticationFilter() {
-        return new JwtAuthenticationFilter(jwtUtils);
+        return new JwtAuthenticationFilter(jwtUtils, userRepository);
     }
 
     @Bean

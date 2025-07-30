@@ -1,7 +1,7 @@
 package com.smartlist.api.passwordreset.service;
 
-import com.smartlist.api.config.PasswordResetProperties;
-import com.smartlist.api.config.RateLimitProperties;
+import com.smartlist.api.infra.config.PasswordResetProperties;
+import com.smartlist.api.infra.config.RateLimitProperties;
 import com.smartlist.api.email.service.EmailService;
 import com.smartlist.api.exceptions.BadRequestException;
 import com.smartlist.api.passwordreset.dto.PasswordExchangeDTO;
