@@ -1,5 +1,8 @@
-package com.smartlist.api.security;
+package com.smartlist.api.infra.security;
 
+import com.smartlist.api.user.model.User;
+import com.smartlist.api.user.repository.UserRepository;
+import com.smartlist.api.userdetails.UserDetailsImpl;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -10,14 +13,15 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.Collections;
 
 @Slf4j
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtUtils jwtUtils;
+    private final UserRepository userRepository;
 
-    public JwtAuthenticationFilter(JwtUtils jwtUtils) {
+    public JwtAuthenticationFilter(JwtUtils jwtUtils, UserRepository userRepository) {
         this.jwtUtils = jwtUtils;
+        this.userRepository = userRepository;
     }
 
     @Override
@@ -34,8 +38,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             if (jwtUtils.isValidToken(jwt)) {
                 String username = jwtUtils.getUsernameFromToken(jwt);
-                UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(username, null, Collections.emptyList());
-                SecurityContextHolder.getContext().setAuthentication(auth);
+                User user = userRepository.findByEmail(username).orElseThrow(() -> {
+                    log.error("Usuário não encontrado: " + username);
+                    return new RuntimeException("Usuário não encontrado: " + username);
+                });
+
+                UserDetailsImpl userDetails = new UserDetailsImpl(user);
+
+                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+
+                SecurityContextHolder.getContext().setAuthentication(authentication);
 
                 log.debug("Usuário autenticado via JWT: {}", username);
             } else {
