@@ -23,7 +23,10 @@ public record ItemRegisterRequestDTO(
 
     @NotNull
     @DecimalMin(value = "0.001")
-    BigDecimal avgConsumption,
+    BigDecimal avgConsumptionValue,
+
+    @NotBlank
+    String avgConsumptionUnit,
 
     @NotNull
     @DecimalMin(value = "0.00")
