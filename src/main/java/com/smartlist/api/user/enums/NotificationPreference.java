@@ -1,6 +1,7 @@
 package com.smartlist.api.user.enums;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.smartlist.api.exceptions.BadRequestException;
 
 public enum NotificationPreference {
     EMAIL, WHATSAPP, BOTH;
@@ -10,7 +11,7 @@ public enum NotificationPreference {
         try {
             return NotificationPreference.valueOf(value.toUpperCase());
         } catch (IllegalArgumentException | NullPointerException ex) {
-            throw new IllegalArgumentException("notificationPreference deve ser um dos seguintes valores: EMAIL, WHATSAPP, BOTH");
+            throw new BadRequestException("ENP1001", "A notificação de preferência deve ser um dos seguintes valores: EMAIL, WHATSAPP, BOTH");
         }
     }
 }

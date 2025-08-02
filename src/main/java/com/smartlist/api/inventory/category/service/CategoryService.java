@@ -40,7 +40,7 @@ public class CategoryService {
     }
 
     public void register(CategoryRegisterRequestDTO dto, User user) {
-        log.info("Iniciando cadastro de categoria");
+        log.info("Iniciando tentativa de cadastro de categoria");
 
         if (categoryRepository.findByUserAndName(user, dto.name()).isPresent()) {
             log.error("Tentativa de cadastro de categoria já registrada.");
@@ -57,7 +57,7 @@ public class CategoryService {
     }
 
     public void update(CategoryUpdateRequestDTO dto, User user) {
-        log.info("Iniciando atualização de categoria");
+        log.info("Iniciando tentativa de atualização de categoria");
 
         Category category = categoryRepository.findByUserAndCategoryId(user, dto.categoryId()).orElseThrow(() -> {
             log.error("Tentativa de atualização de categoria inexistente.");
@@ -72,7 +72,7 @@ public class CategoryService {
     }
 
     public void deleteById(Long categoryId, User user) {
-        log.info("Iniciando exclusão de categoria.");
+        log.info("Iniciando tentativa de exclusão de categoria.");
 
         Category category = categoryRepository.findByUserAndCategoryId(user, categoryId).orElseThrow(() -> {
             log.error("Tentativa de exclusão de categoria inexistente.");
