@@ -1,6 +1,7 @@
 package com.smartlist.api.inventory.item.model;
 
 import com.smartlist.api.inventory.category.model.Category;
+import com.smartlist.api.inventory.item.enums.AverageConsumptionUnit;
 import com.smartlist.api.inventory.item.enums.UnitOfMeasure;
 import com.smartlist.api.user.model.User;
 import jakarta.persistence.*;
@@ -42,8 +43,15 @@ public class Item {
     @Enumerated(EnumType.STRING)
     private UnitOfMeasure unit;
 
-    @Column(name = "avg_consumption", nullable = false, precision = 10, scale = 3)
-    private BigDecimal avgConsumption;
+    @Column(name = "avg_consumption_value", nullable = false, precision = 10, scale = 3)
+    private BigDecimal avgConsumptionValue;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "avg_consumption_unit")
+    private AverageConsumptionUnit avgConsumptionUnit;
+
+    @Column(name = "avg_consumption_per_day", nullable = false, precision = 10, scale = 3)
+    private BigDecimal avgConsumptionPerDay;
 
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal price;

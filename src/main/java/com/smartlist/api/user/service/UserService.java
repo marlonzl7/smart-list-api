@@ -49,7 +49,7 @@ public class UserService {
         User user = new User();
         user.setEmail(dto.email());
         user.setPassword(passwordEncoder.encode(dto.password()));
-        user.setNotificationPreference(dto.notificationPreference());
+        user.setNotificationPreference(dto.notificationPreference()); // adicionar validação aqui depois
         user.setThemePreference(ThemePreference.SYSTEM);
 
         if (dto.phoneNumber() != null && !dto.phoneNumber().isEmpty()) {
