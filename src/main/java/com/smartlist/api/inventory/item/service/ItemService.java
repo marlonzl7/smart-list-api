@@ -49,22 +49,14 @@ public class ItemService {
     public void register(ItemRegisterRequestDTO dto, User user) {
         log.info("Iniciando cadastro de item");
 
-        if (!UnitOfMeasure.isValid(dto.unit())) {
-            throw new BadRequestException("I1001", "Unidade de medida inválida");
-        }
-
-        if (!AverageConsumptionUnit.isValid(dto.avgConsumptionUnit())) {
-            throw new BadRequestException("I1002", "Período de média de consumo inválido");
-        }
-
         Item item = new Item();
         item.setUser(user);
         item.setName(dto.name());
         item.setQuantity(dto.quantity());
         item.setPrice(dto.price());
-        item.setUnit(UnitOfMeasure.fromLabel(dto.unit()));
+        item.setUnit(dto.unit());
         item.setAvgConsumptionValue(dto.avgConsumptionValue());
-        item.setAvgConsumptionUnit(AverageConsumptionUnit.fromLabel(dto.avgConsumptionUnit()));
+        item.setAvgConsumptionUnit(dto.avgConsumptionUnit());
 
         item.setAvgConsumptionPerDay(convertToDailyAverage(dto.avgConsumptionValue(), item.getAvgConsumptionUnit()));
 
@@ -100,12 +92,8 @@ public class ItemService {
             item.setQuantity(dto.quantity());
         }
 
-        if (!dto.unit().equals(item.getUnit().getLabel())) {
-            if (!UnitOfMeasure.isValid(dto.unit())) {
-                throw new BadRequestException("I1001", "Unidade de medida inválida");
-            }
-
-            item.setUnit(UnitOfMeasure.fromLabel(dto.unit()));
+        if (!dto.unit().equals(item.getUnit())) {
+            item.setUnit(dto.unit());
         }
 
         if (!dto.price().equals(item.getPrice())) {
@@ -123,12 +111,7 @@ public class ItemService {
             shouldRecalculateAvgPerDay = true;
         }
 
-        if (!dto.avgConsumptionUnit().equals(item.getAvgConsumptionUnit().name())) {
-            if (!AverageConsumptionUnit.isValid(dto.avgConsumptionUnit())) {
-                throw new BadRequestException("I1002", "Período de média de consumo inválido");
-            }
-
-            item.setAvgConsumptionUnit(AverageConsumptionUnit.fromLabel(dto.avgConsumptionUnit()));
+        if (!dto.avgConsumptionUnit().equals(item.getAvgConsumptionUnit())) {
             shouldRecalculateAvgPerDay = true;
         }
 
