@@ -10,7 +10,8 @@ public record ItemListResponseDTO(
         BigDecimal quantity,
         String unit,
         BigDecimal price,
-        BigDecimal avgConsumption,
+        BigDecimal avgConsumptionValue,
+        String avgConsumptionUnit,
         Long categoryId,
         String categoryName
 ) {}
