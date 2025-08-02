@@ -27,7 +27,7 @@ public class UserService {
     }
 
     public void register(RegisterDTO dto) {
-        log.info("Iniciado cadastro de usuário para email: {}", dto.email());
+        log.info("Iniciado tentativa cadastro de usuário para email: {}", dto.email());
 
         if (existsByEmail(dto.email())) {
             log.error("Tentativa de cadastro com email já registrado. Email: {}", dto.email());

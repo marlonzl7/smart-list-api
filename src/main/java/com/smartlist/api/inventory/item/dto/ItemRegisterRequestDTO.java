@@ -13,24 +13,24 @@ import java.math.BigDecimal;
 public record ItemRegisterRequestDTO(
     Long categoryId,
 
-    @NotBlank
+    @NotBlank(message = "Nome é obrigatório")
     String name,
 
-    @NotNull
+    @NotNull(message = "Quantidade é obrigatória")
     @DecimalMin(value = "0.001")
     BigDecimal quantity,
 
-    @NotNull
+    @NotNull(message = "Unidade de medida é obrigatória")
     UnitOfMeasure unit,
 
-    @NotNull
+    @NotNull(message = "Média de consumo é obrigatória")
     @DecimalMin(value = "0.001")
     BigDecimal avgConsumptionValue,
 
-    @NotNull
+    @NotNull(message = "Unidade de medida de consumo é obrigatória")
     AverageConsumptionUnit avgConsumptionUnit,
 
-    @NotNull
+    @NotNull(message = "Preço é obrigatório")
     @DecimalMin(value = "0.00")
     BigDecimal price
 ) {}
