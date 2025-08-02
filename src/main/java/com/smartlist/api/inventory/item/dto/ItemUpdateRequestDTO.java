@@ -30,7 +30,7 @@ public record ItemUpdateRequestDTO(
         @DecimalMin(value = "0.001")
         BigDecimal avgConsumptionValue,
 
-        @NotNull
+        @NotNull()
         AverageConsumptionUnit avgConsumptionUnit,
 
         @NotNull

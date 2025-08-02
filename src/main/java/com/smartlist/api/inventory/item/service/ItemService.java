@@ -47,7 +47,7 @@ public class ItemService {
     }
 
     public void register(ItemRegisterRequestDTO dto, User user) {
-        log.info("Iniciando cadastro de item");
+        log.info("Iniciando tentativa de cadastro de item");
 
         Item item = new Item();
         item.setUser(user);
@@ -77,7 +77,7 @@ public class ItemService {
     }
 
     public void update(ItemUpdateRequestDTO dto, User user) {
-        log.info("Iniciando atualização de Item");
+        log.info("Iniciando tentativa de atualização de Item");
 
         Item item = itemRepository.findByUserAndItemId(user, dto.itemId()).orElseThrow(() -> {
             log.error("Tentativa de atualização de item inexistente");
@@ -125,7 +125,7 @@ public class ItemService {
     }
 
     public void deleteById(Long itemId, User user) {
-        log.info("Iniciando exclusão de item");
+        log.info("Iniciando tentativa de exclusão de item");
 
         Item item = itemRepository.findByUserAndItemId(user, itemId).orElseThrow(() -> {
             log.error("Tentativa de exclusão de item inexistente");
