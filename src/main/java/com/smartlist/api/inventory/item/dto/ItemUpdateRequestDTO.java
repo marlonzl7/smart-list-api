@@ -1,5 +1,7 @@
 package com.smartlist.api.inventory.item.dto;
 
+import com.smartlist.api.inventory.item.enums.AverageConsumptionUnit;
+import com.smartlist.api.inventory.item.enums.UnitOfMeasure;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -17,8 +19,8 @@ public record ItemUpdateRequestDTO(
         @DecimalMin(value = "0.001")
         BigDecimal quantity,
 
-        @NotBlank
-        String unit,
+        @NotNull
+        UnitOfMeasure unit,
 
         @NotNull
         @DecimalMin(value = "0.00")
@@ -28,8 +30,8 @@ public record ItemUpdateRequestDTO(
         @DecimalMin(value = "0.001")
         BigDecimal avgConsumptionValue,
 
-        @NotBlank
-        String avgConsumptionUnit,
+        @NotNull
+        AverageConsumptionUnit avgConsumptionUnit,
 
         @NotNull
         Long categoryId
