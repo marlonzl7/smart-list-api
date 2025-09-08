@@ -1,0 +1,9 @@
+CREATE TABLE IF NOT EXISTS shopping_list (
+    shopping_list_id BIGSERIAL PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    active BOOLEAN,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES users(user_id)
+);
