@@ -55,7 +55,7 @@ public class CategoryController {
         return ResponseEntity.ok("Categoria registrada com sucesso.");
     }
 
-    @PostMapping("/update")
+    @PatchMapping("/update")
     public ResponseEntity<String> update(@RequestBody @Valid CategoryUpdateRequestDTO updateRequestDTO, @AuthenticationPrincipal UserDetailsImpl userDetails) {
         User user = userDetails.getUser();
         categoryService.update(updateRequestDTO, user);
