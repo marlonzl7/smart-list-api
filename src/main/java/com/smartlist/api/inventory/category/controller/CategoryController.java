@@ -5,6 +5,7 @@ import com.smartlist.api.inventory.category.dto.CategoryRegisterRequestDTO;
 import com.smartlist.api.inventory.category.dto.CategoryUpdateRequestDTO;
 import com.smartlist.api.inventory.category.dto.CategoryListResponseDTO;
 import com.smartlist.api.inventory.category.service.CategoryService;
+import com.smartlist.api.shared.dto.ApiResponse;
 import com.smartlist.api.user.model.User;
 import com.smartlist.api.userdetails.UserDetailsImpl;
 import jakarta.validation.Valid;
@@ -26,7 +27,7 @@ public class CategoryController {
     }
 
     @GetMapping
-    public ResponseEntity<PageResponse<CategoryListResponseDTO>> list(@AuthenticationPrincipal UserDetailsImpl userDetails, @PageableDefault(size = 10) Pageable pageable) {
+    public ResponseEntity<ApiResponse<PageResponse<CategoryListResponseDTO>>> list(@AuthenticationPrincipal UserDetailsImpl userDetails, @PageableDefault(size = 10) Pageable pageable) {
         User user = userDetails.getUser();
         Page<CategoryListResponseDTO> categories = categoryService.list(user, pageable);
 
@@ -38,34 +39,34 @@ public class CategoryController {
         response.setTotalPages(categories.getTotalPages());
         response.setLast(categories.isLast());
 
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(new ApiResponse<>(true, "Categorias páginadas listadas com sucesso.", response));
     }
 
     @GetMapping("/all")
-    public ResponseEntity<List<CategoryListResponseDTO>> listAll(@AuthenticationPrincipal UserDetailsImpl userDetails) {
+    public ResponseEntity<ApiResponse<List<CategoryListResponseDTO>>> listAll(@AuthenticationPrincipal UserDetailsImpl userDetails) {
         User user = userDetails.getUser();
         List<CategoryListResponseDTO> categories = categoryService.listAll(user);
-        return ResponseEntity.ok(categories);
+        return ResponseEntity.ok(new ApiResponse<>(true, "Categorias listadas com sucesso.", categories));
     }
 
     @PostMapping("/register")
-    public ResponseEntity<String> register(@RequestBody @Valid CategoryRegisterRequestDTO registerRequestDTO, @AuthenticationPrincipal UserDetailsImpl userDetails) {
+    public ResponseEntity<ApiResponse<Void>> register(@RequestBody @Valid CategoryRegisterRequestDTO registerRequestDTO, @AuthenticationPrincipal UserDetailsImpl userDetails) {
         User user = userDetails.getUser();
         categoryService.register(registerRequestDTO, user);
-        return ResponseEntity.ok("Categoria registrada com sucesso.");
+        return ResponseEntity.ok(new ApiResponse<>(true, "Categoria registrada com sucesso.", null));
     }
 
     @PostMapping("/update")
-    public ResponseEntity<String> update(@RequestBody @Valid CategoryUpdateRequestDTO updateRequestDTO, @AuthenticationPrincipal UserDetailsImpl userDetails) {
+    public ResponseEntity<ApiResponse<Void>> update(@RequestBody @Valid CategoryUpdateRequestDTO updateRequestDTO, @AuthenticationPrincipal UserDetailsImpl userDetails) {
         User user = userDetails.getUser();
         categoryService.update(updateRequestDTO, user);
-        return ResponseEntity.ok("Categoria atualizada com sucesso.");
+        return ResponseEntity.ok(new ApiResponse<>(true, "Categoria atualizada com sucesso.", null));
     }
 
     @DeleteMapping("/delete/{id}")
-    public ResponseEntity<String> delete(@PathVariable Long id, @AuthenticationPrincipal UserDetailsImpl userDetails) {
+    public ResponseEntity<ApiResponse<Void>> delete(@PathVariable Long id, @AuthenticationPrincipal UserDetailsImpl userDetails) {
         User user = userDetails.getUser();
         categoryService.deleteById(id, user);
-        return ResponseEntity.ok("Categoria excluída com sucesso.");
+        return ResponseEntity.ok(new ApiResponse<>(true, "Categoria excluída com sucesso.", null));
     }
 }
