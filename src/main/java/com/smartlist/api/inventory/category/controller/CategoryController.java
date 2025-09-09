@@ -58,7 +58,7 @@ public class CategoryController {
 
 
     @PatchMapping("/update")
-    public ResponseEntity<String> update(@RequestBody @Valid CategoryUpdateRequestDTO updateRequestDTO, @AuthenticationPrincipal UserDetailsImpl userDetails) {
+    public ResponseEntity<ApiResponse<Void>> update(@RequestBody @Valid CategoryUpdateRequestDTO updateRequestDTO, @AuthenticationPrincipal UserDetailsImpl userDetails) {
         User user = userDetails.getUser();
         categoryService.update(updateRequestDTO, user);
         return ResponseEntity.ok(new ApiResponse<>(true, "Categoria atualizada com sucesso.", null));
