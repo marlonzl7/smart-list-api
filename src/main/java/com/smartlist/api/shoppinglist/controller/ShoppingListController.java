@@ -32,7 +32,7 @@ public class ShoppingListController {
         return ResponseEntity.ok(shoppingListDTO);
     }
 
-    @PostMapping("/update-item")
+    @PatchMapping("/update-item")
     public ResponseEntity<String> updateShoppingListItem(@Valid @RequestBody ShoppingListItemUpdateRequest dto) {
         shoppingListService.updateShoppingListItem(dto);
         return ResponseEntity.ok("Item atualizado com sucesso");
