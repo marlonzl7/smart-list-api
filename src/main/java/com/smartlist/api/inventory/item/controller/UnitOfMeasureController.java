@@ -2,6 +2,7 @@ package com.smartlist.api.inventory.item.controller;
 
 import com.smartlist.api.inventory.item.dto.UnitOfMeasureResponseDTO;
 import com.smartlist.api.inventory.item.enums.UnitOfMeasure;
+import com.smartlist.api.shared.dto.ApiResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -15,11 +16,11 @@ import java.util.stream.Collectors;
 public class UnitOfMeasureController {
 
     @GetMapping
-    public ResponseEntity<List<UnitOfMeasureResponseDTO>> getAllUnits() {
+    public ResponseEntity<ApiResponse<List<UnitOfMeasureResponseDTO>>> getAllUnits() {
         List<UnitOfMeasureResponseDTO> units = Arrays.stream(UnitOfMeasure.values())
                 .map(unit -> new UnitOfMeasureResponseDTO(unit.name(), unit.getLabel()))
                 .collect(Collectors.toList());
 
-        return ResponseEntity.ok(units);
+        return ResponseEntity.ok(new ApiResponse<>(true, "Unidades de medida listadas com sucesso.", units));
     }
 }
