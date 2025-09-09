@@ -3,6 +3,7 @@ package com.smartlist.api.passwordreset.controller;
 import com.smartlist.api.passwordreset.dto.PasswordExchangeDTO;
 import com.smartlist.api.passwordreset.dto.PasswordResetRequestDTO;
 import com.smartlist.api.passwordreset.service.PasswordResetService;
+import com.smartlist.api.shared.dto.ApiResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -20,20 +21,20 @@ public class PasswordResetController {
     }
 
     @PostMapping("/request")
-    public ResponseEntity<String> requestPasswordReset(@RequestBody @Valid PasswordResetRequestDTO request) {
+    public ResponseEntity<ApiResponse<Void>> requestPasswordReset(@RequestBody @Valid PasswordResetRequestDTO request) {
         passwordResetService.requestPasswordReset(request);
-        return ResponseEntity.ok("Se o email existir em nosso sistema, instruções serão enviadas.");
+        return ResponseEntity.ok(new ApiResponse<>(true, "Se o email existir em nosso sistema, instruções serão enviadas.", null));
     }
 
     @GetMapping("/validate")
-    public ResponseEntity<String> validatePasswordResetToken(@RequestParam UUID token) {
+    public ResponseEntity<ApiResponse<Void>> validatePasswordResetToken(@RequestParam UUID token) {
         passwordResetService.validateToken(token);
-        return ResponseEntity.ok("Token válido.");
+        return ResponseEntity.ok(new ApiResponse<>(true, "Token válido.", null));
     }
 
     @PostMapping("/reset")
-    public ResponseEntity<String> resetPassword(@RequestBody @Valid PasswordExchangeDTO passwordExchangeDTO) {
+    public ResponseEntity<ApiResponse<Void>> resetPassword(@RequestBody @Valid PasswordExchangeDTO passwordExchangeDTO) {
         passwordResetService.resetPassword(passwordExchangeDTO);
-        return ResponseEntity.ok("Redefinição de senha realizada com sucesso.");
+        return ResponseEntity.ok(new ApiResponse<>(true, "Redefinição de senha realizada com sucesso.", null));
     }
 }

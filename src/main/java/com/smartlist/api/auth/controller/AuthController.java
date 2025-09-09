@@ -1,8 +1,10 @@
 package com.smartlist.api.auth.controller;
 
 import com.smartlist.api.auth.dto.LoginDTO;
+import com.smartlist.api.auth.dto.TokenResponseDTO;
 import com.smartlist.api.auth.service.AuthService;
 import com.smartlist.api.exceptions.InvalidCredentialsException;
+import com.smartlist.api.shared.dto.ApiResponse;
 import com.smartlist.api.user.repository.UserRepository;
 import com.smartlist.api.user.model.User;
 import jakarta.servlet.http.HttpServletRequest;
@@ -26,7 +28,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public String login(@RequestBody @Valid LoginDTO loginDTO, HttpServletResponse response) {
+    public ResponseEntity<ApiResponse<TokenResponseDTO>> login(@RequestBody @Valid LoginDTO loginDTO, HttpServletResponse response) {
         authService.authenticate(loginDTO);
 
         String accessToken = authService.createAccessToken(loginDTO.email());
@@ -41,18 +43,18 @@ public class AuthController {
 
         response.setHeader("Set-Cookie", cookieHeader);
 
-        return accessToken;
+        return ResponseEntity.ok(new ApiResponse<>(true, "Login efetuado com sucesso.", new TokenResponseDTO(accessToken)));
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<?> refreshToken(HttpServletRequest request, HttpServletResponse response) {
+    public ResponseEntity<ApiResponse<TokenResponseDTO>> refreshToken(HttpServletRequest request, HttpServletResponse response) {
         String newAccessToken = authService.refreshToken(request, response);
-        return ResponseEntity.ok(newAccessToken);
+        return ResponseEntity.ok(new ApiResponse<>(true, "Token atualizado com sucesso.", new TokenResponseDTO(newAccessToken)));
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<?> logout(HttpServletRequest request, HttpServletResponse response) {
+    public ResponseEntity<ApiResponse<Void>> logout(HttpServletRequest request, HttpServletResponse response) {
         authService.logout(request, response);
-        return ResponseEntity.ok("Logout efetuado com sucesso.");
+        return ResponseEntity.ok(new ApiResponse<>(true, "Logout efetuado com sucesso.", null));
     }
 }

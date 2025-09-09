@@ -5,6 +5,7 @@ import com.smartlist.api.inventory.item.dto.ItemListResponseDTO;
 import com.smartlist.api.inventory.item.dto.ItemRegisterRequestDTO;
 import com.smartlist.api.inventory.item.dto.ItemUpdateRequestDTO;
 import com.smartlist.api.inventory.item.service.ItemService;
+import com.smartlist.api.shared.dto.ApiResponse;
 import com.smartlist.api.user.model.User;
 import com.smartlist.api.userdetails.UserDetailsImpl;
 import jakarta.validation.Valid;
@@ -26,7 +27,7 @@ public class ItemController {
     }
 
     @GetMapping
-    public ResponseEntity<PageResponse<ItemListResponseDTO>> list(@AuthenticationPrincipal UserDetailsImpl userDetails, @PageableDefault(size = 10) Pageable pageable) {
+    public ResponseEntity<ApiResponse<PageResponse<ItemListResponseDTO>>> list(@AuthenticationPrincipal UserDetailsImpl userDetails, @PageableDefault(size = 10) Pageable pageable) {
         User user = userDetails.getUser();
         Page<ItemListResponseDTO> items = itemService.list(user, pageable);
 
@@ -38,27 +39,27 @@ public class ItemController {
         response.setTotalPages(items.getTotalPages());
         response.setLast(items.isLast());
 
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(new ApiResponse<>(true, "Itens listados com sucesso.", response));
     }
 
     @PostMapping("/item/register")
-    public ResponseEntity<String> register(@RequestBody @Valid ItemRegisterRequestDTO requestDTO, @AuthenticationPrincipal UserDetailsImpl userDetails) {
+    public ResponseEntity<ApiResponse<Void>> register(@RequestBody @Valid ItemRegisterRequestDTO requestDTO, @AuthenticationPrincipal UserDetailsImpl userDetails) {
         User user = userDetails.getUser();
         itemService.register(requestDTO, user);
-        return ResponseEntity.ok("Item cadastrado com sucesso.");
+        return ResponseEntity.ok(new ApiResponse<>(true, "Item cadastrado com sucesso.", null));
     }
 
     @PostMapping("/item/update")
-    public ResponseEntity<String> update(@RequestBody @Valid ItemUpdateRequestDTO requestDTO, @AuthenticationPrincipal UserDetailsImpl userDetails) {
+    public ResponseEntity<ApiResponse<Void>> update(@RequestBody @Valid ItemUpdateRequestDTO requestDTO, @AuthenticationPrincipal UserDetailsImpl userDetails) {
         User user = userDetails.getUser();
         itemService.update(requestDTO, user);
-        return ResponseEntity.ok("Item atualizado com sucesso");
+        return ResponseEntity.ok(new ApiResponse<>(true, "Item atualizado com sucesso", null));
     }
 
     @DeleteMapping("/item/delete/{itemId}")
-    public ResponseEntity<String> delete(@PathVariable Long itemId, @AuthenticationPrincipal UserDetailsImpl userDetails) {
+    public ResponseEntity<ApiResponse<Void>> delete(@PathVariable Long itemId, @AuthenticationPrincipal UserDetailsImpl userDetails) {
         User user = userDetails.getUser();
         itemService.deleteById(itemId, user);
-        return ResponseEntity.ok("Item excluído com sucesso.");
+        return ResponseEntity.ok(new ApiResponse<>(true, "Item excluído com sucesso.", null));
     }
 }
