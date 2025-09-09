@@ -33,8 +33,8 @@ public class ShoppingListController {
         return ResponseEntity.ok(new ApiResponse<>(true, "Lista obtida com sucesso.", shoppingListDTO));
     }
 
-    @PostMapping("/update-item")
-    public ResponseEntity<ApiResponse<Void>> updateShoppingListItem(@Valid @RequestBody ShoppingListItemUpdateRequest dto) {
+    @PatchMapping("/update-item")
+    public ResponseEntity<String> updateShoppingListItem(@Valid @RequestBody ShoppingListItemUpdateRequest dto) {
         shoppingListService.updateShoppingListItem(dto);
         return ResponseEntity.ok(new ApiResponse<>(true, "Item atualizado com sucesso", null));
     }
