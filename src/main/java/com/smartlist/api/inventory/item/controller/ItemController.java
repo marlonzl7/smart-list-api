@@ -48,7 +48,7 @@ public class ItemController {
         return ResponseEntity.ok("Item cadastrado com sucesso.");
     }
 
-    @PostMapping("/item/update")
+    @PatchMapping("/item/update")
     public ResponseEntity<String> update(@RequestBody @Valid ItemUpdateRequestDTO requestDTO, @AuthenticationPrincipal UserDetailsImpl userDetails) {
         User user = userDetails.getUser();
         itemService.update(requestDTO, user);
