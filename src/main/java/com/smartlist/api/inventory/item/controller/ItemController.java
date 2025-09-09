@@ -50,7 +50,7 @@ public class ItemController {
     }
 
     @PatchMapping("/item/update")
-    public ResponseEntity<String> update(@RequestBody @Valid ItemUpdateRequestDTO requestDTO, @AuthenticationPrincipal UserDetailsImpl userDetails) {
+    public ResponseEntity<ApiResponse<Void>> update(@RequestBody @Valid ItemUpdateRequestDTO requestDTO, @AuthenticationPrincipal UserDetailsImpl userDetails) {
         User user = userDetails.getUser();
         itemService.update(requestDTO, user);
         return ResponseEntity.ok(new ApiResponse<>(true, "Item atualizado com sucesso", null));
