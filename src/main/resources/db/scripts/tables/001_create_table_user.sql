@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS users (
     email VARCHAR(100) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
     phone_number VARCHAR(20),
-    critical_quantity_days NUMERIC(10, 3) DEFAULT 5,
+    critical_quantity_days INT DEFAULT 5,
     notification_preference VARCHAR(20) NOT NULL DEFAULT 'EMAIL',
     theme_preference VARCHAR(20) NOT NULL DEFAULT 'SYSTEM',
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
