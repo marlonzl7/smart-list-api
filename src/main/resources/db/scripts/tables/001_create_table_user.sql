@@ -8,5 +8,8 @@ CREATE TABLE IF NOT EXISTS users (
     notification_preference VARCHAR(20) NOT NULL DEFAULT 'EMAIL',
     theme_preference VARCHAR(20) NOT NULL DEFAULT 'SYSTEM',
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT chkNotificationPreference CHECK (notification_preference IN ('EMAIL', 'WHATSAPP', 'BOTH')),
+    CONSTRAINT chkThemePreference CHECK (theme_preference IN ('SYSTEM', 'DARK', 'LIGHT'))
 );
