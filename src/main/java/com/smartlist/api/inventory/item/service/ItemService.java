@@ -79,10 +79,13 @@ public class ItemService {
     public void update(ItemUpdateRequestDTO dto, User user) {
         log.info("Iniciando tentativa de atualização de Item");
 
-        Item item = itemRepository.findByUserAndItemId(user, dto.itemId()).orElseThrow(() -> {
-            log.error("Tentativa de atualização de item inexistente");
-            return new BadRequestException("I1004", "Item inexistente");
-        });
+        Item item = itemRepository.findByUserAndItemId(user, dto.itemId())
+                .orElseThrow(() -> {
+                    log.error("Tentativa de atualização de item inexistente");
+                    return new BadRequestException("I1004", "Item inexistente");
+                });
+
+        boolean shouldRecalculateAvgPerDay = false;
 
         if (!dto.name().equals(item.getName())) {
             item.setName(dto.name());
@@ -102,21 +105,21 @@ public class ItemService {
 
         if (!dto.avgConsumptionValue().equals(item.getAvgConsumptionValue())) {
             item.setAvgConsumptionValue(dto.avgConsumptionValue());
-        }
-
-        boolean shouldRecalculateAvgPerDay = false;
-
-        if (!dto.avgConsumptionValue().equals(item.getAvgConsumptionValue())) {
-            item.setAvgConsumptionValue(dto.avgConsumptionValue());
             shouldRecalculateAvgPerDay = true;
         }
 
         if (!dto.avgConsumptionUnit().equals(item.getAvgConsumptionUnit())) {
+            item.setAvgConsumptionUnit(dto.avgConsumptionUnit());
             shouldRecalculateAvgPerDay = true;
         }
 
         if (shouldRecalculateAvgPerDay) {
-            item.setAvgConsumptionPerDay(convertToDailyAverage(item.getAvgConsumptionValue(), item.getAvgConsumptionUnit()));
+            item.setAvgConsumptionPerDay(
+                    convertToDailyAverage(
+                            item.getAvgConsumptionValue(),
+                            item.getAvgConsumptionUnit()
+                    )
+            );
         }
 
         itemRepository.save(item);
