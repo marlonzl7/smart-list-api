@@ -10,6 +10,8 @@ import com.smartlist.api.inventory.item.enums.AverageConsumptionUnit;
 import com.smartlist.api.inventory.item.enums.UnitOfMeasure;
 import com.smartlist.api.inventory.item.model.Item;
 import com.smartlist.api.inventory.item.repository.ItemRepository;
+import com.smartlist.api.inventory.service.InventoryApplicationService;
+import com.smartlist.api.inventory.service.InventoryService;
 import com.smartlist.api.user.model.User;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -18,6 +20,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDate;
 import java.util.Optional;
 
 @Service
@@ -25,10 +28,12 @@ import java.util.Optional;
 public class ItemService {
     private final ItemRepository itemRepository;
     private final CategoryRepository categoryRepository;
+    private final InventoryApplicationService inventoryApplicationService;
 
-    public ItemService(ItemRepository itemRepository, CategoryRepository categoryRepository) {
+    public ItemService(ItemRepository itemRepository, CategoryRepository categoryRepository, InventoryApplicationService inventoryApplicationService) {
         this.itemRepository = itemRepository;
         this.categoryRepository = categoryRepository;
+        this.inventoryApplicationService = inventoryApplicationService;
     }
 
     public Page<ItemListResponseDTO> list(User user, Pageable pageable) {
@@ -57,6 +62,11 @@ public class ItemService {
         item.setUnit(dto.unit());
         item.setAvgConsumptionValue(dto.avgConsumptionValue());
         item.setAvgConsumptionUnit(dto.avgConsumptionUnit());
+        item.setLastStockUpdate(LocalDate.now());
+
+        if (dto.criticalQuantityDaysOverride() != null) {
+            item.setCriticalQuantityDaysOverride(dto.criticalQuantityDaysOverride());
+        }
 
         item.setAvgConsumptionPerDay(convertToDailyAverage(dto.avgConsumptionValue(), item.getAvgConsumptionUnit()));
 
@@ -90,6 +100,7 @@ public class ItemService {
 
         if (!dto.quantity().equals(item.getQuantity())) {
             item.setQuantity(dto.quantity());
+            item.setLastStockUpdate(LocalDate.now());
         }
 
         if (!dto.unit().equals(item.getUnit())) {
@@ -119,7 +130,12 @@ public class ItemService {
             item.setAvgConsumptionPerDay(convertToDailyAverage(item.getAvgConsumptionValue(), item.getAvgConsumptionUnit()));
         }
 
+        if (!dto.criticalQuantityDaysOverride().equals(item.getCriticalQuantityDaysOverride())) {
+            item.setCriticalQuantityDaysOverride(dto.criticalQuantityDaysOverride());
+        }
+
         itemRepository.save(item);
+        inventoryApplicationService.onItemUpdated(user);
 
         log.info("Item atualizado com sucesso.");
     }

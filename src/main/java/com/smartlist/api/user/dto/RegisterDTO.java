@@ -1,10 +1,7 @@
 package com.smartlist.api.user.dto;
 
 import com.smartlist.api.user.enums.NotificationPreference;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.*;
 
 public record RegisterDTO(
         @NotBlank(message = "Email é obrigatório.")
@@ -21,5 +18,9 @@ public record RegisterDTO(
         String phoneNumber,
 
         @NotNull(message = "Preferência de notificação é obrigatória.")
-        NotificationPreference notificationPreference) {
-}
+        NotificationPreference notificationPreference,
+
+        @Min(0)
+        Integer criticalQuantityDays
+)
+{}

@@ -3,8 +3,8 @@ package com.smartlist.api.shoppinglist.service;
 import com.smartlist.api.exceptions.BadRequestException;
 import com.smartlist.api.inventory.item.model.Item;
 import com.smartlist.api.inventory.item.repository.ItemRepository;
+import com.smartlist.api.inventory.service.InventoryService;
 import com.smartlist.api.shoppinglist.dto.ShoppingListDTO;
-import com.smartlist.api.shoppinglist.dto.ShoppingListItemRegisterRequest;
 import com.smartlist.api.shoppinglist.dto.ShoppingListItemUpdateRequest;
 import com.smartlist.api.shoppinglist.model.ShoppingList;
 import com.smartlist.api.shoppinglist.repository.ShoppingListRepository;
@@ -15,10 +15,7 @@ import com.smartlist.api.user.model.User;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 @Slf4j
 @Service
@@ -26,11 +23,13 @@ public class ShoppingListService {
     private final ShoppingListRepository shoppingListRepository;
     private final ShoppingListItemRepository shoppingListItemRepository;
     private final ItemRepository itemRepository;
+    private final InventoryService inventoryService;
 
-    public ShoppingListService(ShoppingListRepository shoppingListRepository, ShoppingListItemRepository shoppingListItemRepository, ItemRepository itemRepository) {
+    public ShoppingListService(ShoppingListRepository shoppingListRepository, ShoppingListItemRepository shoppingListItemRepository, ItemRepository itemRepository, InventoryService inventoryService) {
         this.shoppingListRepository = shoppingListRepository;
         this.shoppingListItemRepository = shoppingListItemRepository;
         this.itemRepository = itemRepository;
+        this.inventoryService = inventoryService;
     }
 
     public ShoppingListDTO getActiveShoppingListByUser(User user) {
@@ -41,11 +40,18 @@ public class ShoppingListService {
 
         List<ShoppingListItemDTO> items = shoppingListItemRepository.findItemsByShoppingListId(shoppingList.getShoppingListId());
 
+        processItemsOnListOpen(shoppingList);
+
         return new ShoppingListDTO(
                 shoppingList.getShoppingListId(),
                 shoppingList.isActive(),
                 items
         );
+    }
+
+    private void processItemsOnListOpen(ShoppingList shoppingList) {
+        List<Item> items = itemRepository.findByUser(shoppingList.getUser());
+        items.forEach(inventoryService::processItem);
     }
 
     public ShoppingListDTO getShoppingListWithItems(Long shoppingListId) {
@@ -75,37 +81,33 @@ public class ShoppingListService {
         return shoppingList;
     }
 
-    public void registerShoppingListItem(ShoppingListItemRegisterRequest itemDTO, User user) {
-        log.info("Iniciando tentativa de cadastro de item na lista de compras");
+    public void addItemToShoppingList(Item item, User user) {
+        log.info("Iniciando tentativa de cadastro de item na lista de compras. Item ID: {}.", item.getItemId());
 
         ShoppingList shoppingList = shoppingListRepository.findByUserAndActiveTrue(user).orElseGet(() -> {
             log.info("Nenhuma lista de compras ativa encontrada para usuário: " + user.getEmail() + ". Criando nova lista...");
             return createAndActiveShoppingList(user);
         });
 
-        ShoppingListItem shoppingListItem = new ShoppingListItem();
-        shoppingListItem.setShoppingList(shoppingList);
+        ShoppingListItem shoppingListItem = ShoppingListItem.create(item, shoppingList);
 
-        Item item = itemRepository.findByUserAndItemId(user, itemDTO.itemId()).orElseThrow(() -> {
-            log.error("Tentativa de adição de item inexistente na lista de compras");
-            return new BadRequestException("SL1003", "Item inexistente");
-        });
+        boolean alreadyInList = shoppingListItemRepository.existsByShoppingListAndItem(shoppingList, item);
 
-        shoppingListItem.setItem(item);
-        shoppingListItem.setPurchasedQuantity(itemDTO.purchasedQuantity());
-        shoppingListItem.setUnitaryPrice(itemDTO.unitaryPrice());
-        shoppingListItem.recalculateSubtotal();
+        if (alreadyInList) {
+            log.info("Item {} já está na lista de compras", item.getItemId());
+            return;
+        }
 
         shoppingListItemRepository.save(shoppingListItem);
 
-        log.info("Cadastro de item na lista de compras realizado com sucesso.");
+        log.info("Cadastro de item na lista de compras realizado com sucesso. Item ID: {}.", item.getItemId());
     }
 
     public void updateShoppingListItem(ShoppingListItemUpdateRequest itemDTO) {
-        log.info("Iniciando tentativa de atualização de item da lista de compras");
+        log.info("Iniciando tentativa de atualização de item da lista de compras. Item ID: {}", itemDTO.shoppingListItemId());
 
         ShoppingListItem item = shoppingListItemRepository.findById(itemDTO.shoppingListItemId()).orElseThrow(() -> {
-            log.error("Tentativa de atualização de item de lista de compras inexistente");
+            log.error("Tentativa de atualização de item de lista de compras inexistente. Item ID: {}", itemDTO.shoppingListItemId());
             return new BadRequestException("SL1004", "Item inexistente");
         });
 
@@ -127,19 +129,19 @@ public class ShoppingListService {
 
         shoppingListItemRepository.save(item);
 
-        log.info("Item da lista de compras atualizado com sucesso.");
+        log.info("Item da lista de compras atualizado com sucesso. Item ID: {}", itemDTO.shoppingListItemId());
     }
 
     public void deleteShoppingListItemById(Long shoppingListItemId) {
-        log.info("Iniciando tentativa de exclusão de item");
+        log.info("Iniciando tentativa de exclusão de item. ID: {}", shoppingListItemId);
 
         ShoppingListItem item = shoppingListItemRepository.findById(shoppingListItemId).orElseThrow(() -> {
-            log.error("Tentativa de exclusão de item inexistente.");
+            log.error("Tentativa de exclusão de item inexistente. ID: {}", shoppingListItemId);
             return new BadRequestException("SL1005", "Item inexistente");
         });
 
         shoppingListItemRepository.deleteById(shoppingListItemId);
 
-        log.info("Item de lista de compras excluído com sucesso");
+        log.info("Item de lista de compras excluído com sucesso. ID: {}", shoppingListItemId);
     }
 }

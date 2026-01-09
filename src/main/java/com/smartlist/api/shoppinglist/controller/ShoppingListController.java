@@ -33,15 +33,25 @@ public class ShoppingListController {
         return ResponseEntity.ok(new ApiResponse<>(true, "Lista obtida com sucesso.", shoppingListDTO));
     }
 
-    @PatchMapping("/update-item")
+    @PatchMapping("/update-item") // mudar para /item/update
     public ResponseEntity<ApiResponse<Void>> updateShoppingListItem(@Valid @RequestBody ShoppingListItemUpdateRequest dto) {
         shoppingListService.updateShoppingListItem(dto);
         return ResponseEntity.ok(new ApiResponse<>(true, "Item atualizado com sucesso", null));
     }
 
-    @DeleteMapping("/delete-item/{shoppingListItemId}")
+    @DeleteMapping("/delete-item/{shoppingListItemId}") // mudar para /item/delete
     public ResponseEntity<ApiResponse<Void>> deleteShoppingListItem(@PathVariable Long shoppingListItemId) {
         shoppingListService.deleteShoppingListItemById(shoppingListItemId);
         return ResponseEntity.ok(new ApiResponse<>(true, "Item excluído com sucesso", null));
     }
+
+    // IMPLEMENTAR CHECKOUT
+    /* Passos:
+     * Atualizar os itens
+     * Desativar a lista
+     */
+//    @PostMapping("/checkout")
+//    public ResponseEntity<ApiResponse<Void>> checkout() {
+//        return ResponseEntity.ok(new ApiResponse<>(true, "Compra finalizada com sucesso", null));
+//    }
 }
