@@ -40,6 +40,9 @@ public class User {
     @Column(name = "theme_preference")
     private ThemePreference themePreference;
 
+    @Column(name = "critical_quantity_days")
+    private Integer criticalQuantityDays;
+
     @CreationTimestamp
     @Column(name = "created_at")
     private LocalDateTime createdAt;

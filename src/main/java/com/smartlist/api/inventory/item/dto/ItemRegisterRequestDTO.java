@@ -5,6 +5,7 @@ import com.smartlist.api.inventory.item.enums.AverageConsumptionUnit;
 import com.smartlist.api.inventory.item.enums.UnitOfMeasure;
 import com.smartlist.api.user.model.User;
 import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
@@ -32,5 +33,8 @@ public record ItemRegisterRequestDTO(
 
     @NotNull(message = "Preço é obrigatório")
     @DecimalMin(value = "0.00")
-    BigDecimal price
+    BigDecimal price,
+
+    @Min(0)
+    Integer criticalQuantityDaysOverride
 ) {}

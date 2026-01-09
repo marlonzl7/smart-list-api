@@ -49,6 +49,16 @@ public class ShoppingListItem {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    public static ShoppingListItem create(Item item, ShoppingList shoppingList) {
+        ShoppingListItem sli = new ShoppingListItem();
+        sli.setItem(item);
+        sli.setShoppingList(shoppingList);
+        sli.setPurchasedQuantity(BigDecimal.ZERO);
+        sli.setUnitaryPrice(null);
+        sli.recalculateSubtotal();
+        return sli;
+    }
+
     public void recalculateSubtotal() {
         if (unitaryPrice != null && purchasedQuantity != null) {
             this.subtotal = unitaryPrice.multiply(purchasedQuantity);
