@@ -38,20 +38,14 @@ public class ShoppingListService {
             return new BadRequestException("SL1001", "Lista inexistente");
         });
 
-        List<ShoppingListItemDTO> items = shoppingListItemRepository.findItemsByShoppingListId(shoppingList.getShoppingListId());
-
-        processItemsOnListOpen(shoppingList);
+        List<ShoppingListItemDTO> items = shoppingListItemRepository
+                .findItemsByShoppingListId(shoppingList.getShoppingListId());
 
         return new ShoppingListDTO(
                 shoppingList.getShoppingListId(),
                 shoppingList.isActive(),
                 items
         );
-    }
-
-    private void processItemsOnListOpen(ShoppingList shoppingList) {
-        List<Item> items = itemRepository.findByUser(shoppingList.getUser());
-        items.forEach(inventoryService::processItem);
     }
 
     public ShoppingListDTO getShoppingListWithItems(Long shoppingListId) {

@@ -3,6 +3,7 @@ package com.smartlist.api.shoppinglist.controller;
 import com.smartlist.api.shared.dto.ApiResponse;
 import com.smartlist.api.shoppinglist.dto.ShoppingListDTO;
 import com.smartlist.api.shoppinglist.dto.ShoppingListItemUpdateRequest;
+import com.smartlist.api.shoppinglist.service.ShoppingListApplicationService;
 import com.smartlist.api.shoppinglist.service.ShoppingListService;
 import com.smartlist.api.user.model.User;
 import com.smartlist.api.userdetails.UserDetailsImpl;
@@ -15,15 +16,17 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/shopping-list")
 public class ShoppingListController {
     private final ShoppingListService shoppingListService;
+    private final ShoppingListApplicationService shoppingListApplicationService;
 
-    public ShoppingListController(ShoppingListService shoppingListService) {
+    public ShoppingListController(ShoppingListService shoppingListService, ShoppingListApplicationService shoppingListApplicationService) {
         this.shoppingListService = shoppingListService;
+        this.shoppingListApplicationService = shoppingListApplicationService;
     }
 
     @GetMapping("/active")
     public ResponseEntity<ApiResponse<ShoppingListDTO>> getActiveShoppingList(@AuthenticationPrincipal UserDetailsImpl userDetails) {
             User user = userDetails.getUser();
-        ShoppingListDTO shoppingListDTO = shoppingListService.getActiveShoppingListByUser(user);
+        ShoppingListDTO shoppingListDTO = shoppingListApplicationService.getActiveShoppingList(user);
         return ResponseEntity.ok(new ApiResponse<>(true, "Lista ativa obtida com sucesso.", shoppingListDTO));
     }
 

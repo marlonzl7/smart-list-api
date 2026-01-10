@@ -3,12 +3,14 @@ package com.smartlist.api.inventory.service;
 import com.smartlist.api.inventory.item.model.Item;
 import com.smartlist.api.shoppinglist.service.ShoppingListService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 
 @Slf4j
+@Service
 public class InventoryService {
 
     private final ShoppingListService shoppingListService;
