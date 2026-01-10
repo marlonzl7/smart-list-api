@@ -1,5 +1,7 @@
 package com.smartlist.api.shoppinglistitem.repository;
 
+import com.smartlist.api.inventory.item.model.Item;
+import com.smartlist.api.shoppinglist.model.ShoppingList;
 import com.smartlist.api.shoppinglistitem.dto.ShoppingListItemDTO;
 import com.smartlist.api.shoppinglistitem.model.ShoppingListItem;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -24,4 +26,5 @@ public interface ShoppingListItemRepository extends JpaRepository<ShoppingListIt
            WHERE sli.shoppingList.shoppingListId = :shoppingListId
            """)
     List<ShoppingListItemDTO> findItemsByShoppingListId(@Param("shoppingListId") Long shoppingListId);
+    boolean existsByShoppingListAndItem(ShoppingList shoppingList, Item item);
 }

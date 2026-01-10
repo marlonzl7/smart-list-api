@@ -12,6 +12,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -58,6 +59,12 @@ public class Item {
 
     @Column(name = "in_shopping_list", nullable = false)
     private boolean inShoppingList = false;
+
+    @Column(name = "last_stock_update")
+    private LocalDate lastStockUpdate;
+
+    @Column(name = "critical_quantity_days_override")
+    private Integer criticalQuantityDaysOverride;
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)

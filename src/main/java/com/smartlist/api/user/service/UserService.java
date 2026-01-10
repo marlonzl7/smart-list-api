@@ -56,6 +56,10 @@ public class UserService {
             user.setPhoneNumber(dto.phoneNumber());
         }
 
+        if (dto.criticalQuantityDays() != null) {
+            user.setCriticalQuantityDays(dto.criticalQuantityDays());
+        }
+
         userRepository.save(user);
 
         log.info("Usuário cadastrado com sucesso. Email {}", user.getEmail());
