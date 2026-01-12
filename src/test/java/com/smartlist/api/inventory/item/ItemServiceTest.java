@@ -9,6 +9,7 @@ import com.smartlist.api.inventory.item.enums.UnitOfMeasure;
 import com.smartlist.api.inventory.item.model.Item;
 import com.smartlist.api.inventory.item.repository.ItemRepository;
 import com.smartlist.api.inventory.item.service.ItemService;
+import com.smartlist.api.inventory.service.InventoryApplicationService;
 import com.smartlist.api.user.model.User;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -26,7 +27,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class ItemServiceTest {
+class ItemServiceTest {
 
     @Mock
     private ItemRepository itemRepository;
@@ -36,6 +37,9 @@ public class ItemServiceTest {
 
     @InjectMocks
     private ItemService itemService;
+
+    @Mock
+    private InventoryApplicationService inventoryApplicationService;
 
     @Test
     void shouldRegisterItemWithoutCategory() {
@@ -48,15 +52,17 @@ public class ItemServiceTest {
                 UnitOfMeasure.KG,
                 new BigDecimal("30"),
                 AverageConsumptionUnit.MONTH,
-                new BigDecimal("10.50")
+                new BigDecimal("10.50"),
+                null
         );
 
         itemService.register(dto, user);
 
         verify(itemRepository).save(argThat(item ->
-                item.getName().equals("Arroz") &&
-                        item.getUser().equals(user) &&
-                        item.getAvgConsumptionPerDay().compareTo(new BigDecimal("1.000000")) == 0
+                "Arroz".equals(item.getName())
+                        && item.getUser().equals(user)
+                        && item.getAvgConsumptionPerDay()
+                        .compareTo(new BigDecimal("1.000000")) == 0
         ));
     }
 
@@ -71,7 +77,8 @@ public class ItemServiceTest {
                 UnitOfMeasure.KG,
                 new BigDecimal("7"),
                 AverageConsumptionUnit.WEEK,
-                new BigDecimal("8.00")
+                new BigDecimal("8.00"),
+                null
         );
 
         when(categoryRepository.findByUserAndCategoryId(user, 99L))
@@ -94,9 +101,10 @@ public class ItemServiceTest {
                 "Novo nome",
                 new BigDecimal("1"),
                 UnitOfMeasure.UNIT,
-                new BigDecimal("5"),
+                new BigDecimal("5.00"),
                 new BigDecimal("1"),
                 AverageConsumptionUnit.DAY,
+                null,
                 1L
         );
 
@@ -109,12 +117,18 @@ public class ItemServiceTest {
     }
 
     @Test
-    void shouldRecalculateAvgConsumptionWhenUnitChanges() {
+    void shouldRecalculateAvgConsumptionWhenConsumptionParametersChange() {
         User user = new User();
 
         Item item = new Item();
+        item.setName("Item");
+        item.setUser(user);
+        item.setQuantity(new BigDecimal("10"));
+        item.setUnit(UnitOfMeasure.UNIT);
+
         item.setAvgConsumptionValue(new BigDecimal("30"));
         item.setAvgConsumptionUnit(AverageConsumptionUnit.MONTH);
+        item.setAvgConsumptionPerDay(new BigDecimal("1.000000"));
 
         when(itemRepository.findByUserAndItemId(user, 1L))
                 .thenReturn(Optional.of(item));
@@ -122,11 +136,12 @@ public class ItemServiceTest {
         ItemUpdateRequestDTO dto = new ItemUpdateRequestDTO(
                 1L,
                 "Item",
-                new BigDecimal("1"),
-                UnitOfMeasure.UNIT,
                 new BigDecimal("10"),
+                UnitOfMeasure.UNIT,
+                new BigDecimal("7.00"),
                 new BigDecimal("7"),
                 AverageConsumptionUnit.WEEK,
+                null,
                 1L
         );
 
@@ -134,9 +149,12 @@ public class ItemServiceTest {
 
         verify(itemRepository).save(argThat(saved ->
                 saved.getAvgConsumptionPerDay()
-                        .compareTo(new BigDecimal("1.000000")) == 0
+                        .subtract(new BigDecimal("0.233333"))
+                        .abs()
+                        .compareTo(new BigDecimal("0.000001")) < 0
         ));
     }
+
 
     @Test
     void shouldThrowExceptionWhenDeletingNonExistentItem() {
@@ -162,5 +180,4 @@ public class ItemServiceTest {
 
         verify(itemRepository).deleteById(1L);
     }
-
 }
