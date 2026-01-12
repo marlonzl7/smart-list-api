@@ -3,8 +3,8 @@ package com.smartlist.api.shoppinglist;
 import com.smartlist.api.exceptions.BadRequestException;
 import com.smartlist.api.inventory.item.model.Item;
 import com.smartlist.api.inventory.item.repository.ItemRepository;
+import com.smartlist.api.inventory.service.InventoryService;
 import com.smartlist.api.shoppinglist.dto.ShoppingListDTO;
-import com.smartlist.api.shoppinglist.dto.ShoppingListItemRegisterRequest;
 import com.smartlist.api.shoppinglist.dto.ShoppingListItemUpdateRequest;
 import com.smartlist.api.shoppinglist.model.ShoppingList;
 import com.smartlist.api.shoppinglist.repository.ShoppingListRepository;
@@ -42,6 +42,9 @@ public class ShoppingListServiceTest {
 
     @Mock
     private ItemRepository itemRepository;
+
+    @Mock
+    private InventoryService inventoryService;
 
     private User user;
 
@@ -130,49 +133,43 @@ public class ShoppingListServiceTest {
     }
 
     @Test
-    void shouldRegisterItemInActiveShoppingList() {
+    void shouldAddItemToShoppingListWhenNotExists() {
         ShoppingList shoppingList = new ShoppingList();
-        shoppingList.setShoppingListId(1L);
         shoppingList.setActive(true);
         shoppingList.setUser(user);
 
         Item item = new Item();
         item.setItemId(5L);
 
-        ShoppingListItemRegisterRequest request =
-                new ShoppingListItemRegisterRequest(null, 5L, BigDecimal.TWO, BigDecimal.TEN);
-
         when(shoppingListRepository.findByUserAndActiveTrue(user))
                 .thenReturn(Optional.of(shoppingList));
 
-        when(itemRepository.findByUserAndItemId(user, 5L))
-                .thenReturn(Optional.of(item));
+        when(shoppingListItemRepository.existsByShoppingListAndItem(shoppingList, item))
+                .thenReturn(false);
 
-        shoppingListService.registerShoppingListItem(request, user);
+        shoppingListService.addItemToShoppingList(item, user);
 
         verify(shoppingListItemRepository).save(any(ShoppingListItem.class));
     }
 
     @Test
-    void shouldThrowExceptionWhenItemNotFound() {
+    void shouldNotAddItemIfAlreadyInShoppingList() {
         ShoppingList shoppingList = new ShoppingList();
         shoppingList.setActive(true);
+        shoppingList.setUser(user);
+
+        Item item = new Item();
+        item.setItemId(5L);
 
         when(shoppingListRepository.findByUserAndActiveTrue(user))
                 .thenReturn(Optional.of(shoppingList));
 
-        when(itemRepository.findByUserAndItemId(user, 99L))
-                .thenReturn(Optional.empty());
+        when(shoppingListItemRepository.existsByShoppingListAndItem(shoppingList, item))
+                .thenReturn(true);
 
-        ShoppingListItemRegisterRequest request =
-                new ShoppingListItemRegisterRequest(null, 99L, BigDecimal.ONE, BigDecimal.TEN);
+        shoppingListService.addItemToShoppingList(item, user);
 
-        BadRequestException ex = assertThrows(
-                BadRequestException.class,
-                () -> shoppingListService.registerShoppingListItem(request, user)
-        );
-
-        assertEquals("SL1003", ex.getCode());
+        verify(shoppingListItemRepository, never()).save(any());
     }
 
     @Test

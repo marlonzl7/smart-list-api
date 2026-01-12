@@ -1,4 +1,4 @@
-package com.smartlist.api.inventory;
+package com.smartlist.api.inventory.service;
 
 import com.smartlist.api.inventory.item.model.Item;
 import com.smartlist.api.inventory.item.repository.ItemRepository;
