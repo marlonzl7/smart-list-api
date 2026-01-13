@@ -87,13 +87,15 @@ public class ItemService {
         log.info("Cadastro de item realizado com sucesso.");
     }
 
-    public void update(ItemUpdateRequestDTO dto, User user) {
+    public void update(Long itemId, ItemUpdateRequestDTO dto, User user) {
         log.info("Iniciando tentativa de atualização de Item");
 
-        Item item = itemRepository.findByUserAndItemId(user, dto.itemId()).orElseThrow(() -> {
-            log.error("Tentativa de atualização de item inexistente");
-            return new BadRequestException("I1004", "Item inexistente");
-        });
+        Item item = itemRepository
+                .findByUserAndItemId(user, itemId)
+                .orElseThrow(() -> {
+                    log.error("Tentativa de atualização de item inexistente");
+                    return new BadRequestException("I1004", "Item inexistente");
+                });
 
         if (!dto.name().equals(item.getName())) {
             item.setName(dto.name());

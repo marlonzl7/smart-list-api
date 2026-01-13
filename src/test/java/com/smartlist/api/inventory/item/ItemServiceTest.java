@@ -97,7 +97,6 @@ class ItemServiceTest {
         User user = new User();
 
         ItemUpdateRequestDTO dto = new ItemUpdateRequestDTO(
-                1L,
                 "Novo nome",
                 new BigDecimal("1"),
                 UnitOfMeasure.UNIT,
@@ -112,7 +111,7 @@ class ItemServiceTest {
                 .thenReturn(Optional.empty());
 
         assertThrows(BadRequestException.class, () ->
-                itemService.update(dto, user)
+                itemService.update(1L, dto, user)
         );
     }
 
@@ -134,7 +133,6 @@ class ItemServiceTest {
                 .thenReturn(Optional.of(item));
 
         ItemUpdateRequestDTO dto = new ItemUpdateRequestDTO(
-                1L,
                 "Item",
                 new BigDecimal("10"),
                 UnitOfMeasure.UNIT,
@@ -145,7 +143,7 @@ class ItemServiceTest {
                 1L
         );
 
-        itemService.update(dto, user);
+        itemService.update(1L, dto, user);
 
         verify(itemRepository).save(argThat(saved ->
                 saved.getAvgConsumptionPerDay()

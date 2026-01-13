@@ -12,7 +12,7 @@ import java.util.Arrays;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/inventory/item/units")
+@RequestMapping("/inventory/items/units")
 public class UnitOfMeasureController {
 
     @GetMapping

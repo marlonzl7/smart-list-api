@@ -18,7 +18,7 @@ import org.springframework.data.domain.Pageable;
 import java.util.List;
 
 @RestController
-@RequestMapping("/inventory/category")
+@RequestMapping("/inventory/categories")
 public class CategoryController {
     private final CategoryService categoryService;
 
@@ -49,7 +49,7 @@ public class CategoryController {
         return ResponseEntity.ok(new ApiResponse<>(true, "Categorias listadas com sucesso.", categories));
     }
 
-    @PostMapping("/register")
+    @PostMapping
     public ResponseEntity<ApiResponse<Void>> register(@RequestBody @Valid CategoryRegisterRequestDTO registerRequestDTO, @AuthenticationPrincipal UserDetailsImpl userDetails) {
         User user = userDetails.getUser();
         categoryService.register(registerRequestDTO, user);
@@ -57,14 +57,14 @@ public class CategoryController {
     }
 
 
-    @PatchMapping("/update")
-    public ResponseEntity<ApiResponse<Void>> update(@RequestBody @Valid CategoryUpdateRequestDTO updateRequestDTO, @AuthenticationPrincipal UserDetailsImpl userDetails) {
+    @PatchMapping("{categoryId}")
+    public ResponseEntity<ApiResponse<Void>> update(@PathVariable Long categoryId, @RequestBody @Valid CategoryUpdateRequestDTO updateRequestDTO, @AuthenticationPrincipal UserDetailsImpl userDetails) {
         User user = userDetails.getUser();
-        categoryService.update(updateRequestDTO, user);
+        categoryService.update(categoryId, updateRequestDTO, user);
         return ResponseEntity.ok(new ApiResponse<>(true, "Categoria atualizada com sucesso.", null));
     }
 
-    @DeleteMapping("/delete/{id}")
+    @DeleteMapping("{id}")
     public ResponseEntity<ApiResponse<Void>> delete(@PathVariable Long id, @AuthenticationPrincipal UserDetailsImpl userDetails) {
         User user = userDetails.getUser();
         categoryService.deleteById(id, user);

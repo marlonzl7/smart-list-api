@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/reset-password")
+@RequestMapping("/password-resets")
 public class PasswordResetController {
     private final PasswordResetService passwordResetService;
 
@@ -20,7 +20,7 @@ public class PasswordResetController {
         this.passwordResetService = passwordResetService;
     }
 
-    @PostMapping("/request")
+    @PostMapping
     public ResponseEntity<ApiResponse<Void>> requestPasswordReset(@RequestBody @Valid PasswordResetRequestDTO request) {
         passwordResetService.requestPasswordReset(request);
         return ResponseEntity.ok(new ApiResponse<>(true, "Se o email existir em nosso sistema, instruções serão enviadas.", null));
@@ -32,7 +32,7 @@ public class PasswordResetController {
         return ResponseEntity.ok(new ApiResponse<>(true, "Token válido.", null));
     }
 
-    @PostMapping("/reset")
+    @PostMapping("/confirm")
     public ResponseEntity<ApiResponse<Void>> resetPassword(@RequestBody @Valid PasswordExchangeDTO passwordExchangeDTO) {
         passwordResetService.resetPassword(passwordExchangeDTO);
         return ResponseEntity.ok(new ApiResponse<>(true, "Redefinição de senha realizada com sucesso.", null));

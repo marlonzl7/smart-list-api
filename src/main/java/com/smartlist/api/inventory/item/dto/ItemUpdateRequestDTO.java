@@ -10,9 +10,6 @@ import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
 
 public record ItemUpdateRequestDTO(
-        @NotNull
-        Long itemId,
-
         @NotBlank
         String name,
 
