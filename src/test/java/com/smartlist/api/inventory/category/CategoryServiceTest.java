@@ -38,16 +38,8 @@ public class CategoryServiceTest {
     @InjectMocks
     private CategoryService categoryService;
 
-    /*
-     * TESTES NECESSÁRIOS:
-     * CENÁRIO FELIZ
-     * CENÁRIO DE ERRO
-     * REGRAS DE NEGÓCIO IMPORTANTES
-     */
-
     @Test
     void shouldListCategoriesByUserWithPagination() {
-        // Arrange
         User user = new User();
         Pageable pageable = Pageable.ofSize(10);
 
@@ -60,10 +52,8 @@ public class CategoryServiceTest {
         when(categoryRepository.findByUser(user, pageable))
                 .thenReturn(page);
 
-        // Act
         Page<CategoryListResponseDTO> result = categoryService.list(user, pageable);
 
-        // Assert
         assertEquals(1, result.getTotalElements());
         assertEquals("Mercado", result.getContent().get(0).name());
 
@@ -72,7 +62,6 @@ public class CategoryServiceTest {
 
     @Test
     void shouldListAllCategoriesByUser() {
-        // Arrange
         User user = new User();
 
         Category category1 = new Category();
@@ -86,11 +75,9 @@ public class CategoryServiceTest {
         when(categoryRepository.findByUser(user))
                 .thenReturn(List.of(category1, category2));
 
-        // Act
         List<CategoryListResponseDTO> result =
                 categoryService.listAll(user);
 
-        // Assert
         assertEquals(2, result.size());
         assertEquals("Mercado", result.get(0).name());
         assertEquals("Farmácia", result.get(1).name());
@@ -100,7 +87,6 @@ public class CategoryServiceTest {
 
     @Test
     void shouldRegisterCategorySuccessfully() {
-        // Arrange
         User user = new User();
         CategoryRegisterRequestDTO dto =
                 new CategoryRegisterRequestDTO("Mercado");
@@ -108,16 +94,13 @@ public class CategoryServiceTest {
         when(categoryRepository.findByUserAndName(user, "Mercado"))
                 .thenReturn(Optional.empty());
 
-        // Act
         categoryService.register(dto, user);
 
-        // Assert
         verify(categoryRepository).save(any(Category.class));
     }
 
     @Test
     void shouldThrowExceptionWhenCategoryAlreadyExists() {
-        // Arrange
         User user = new User();
         CategoryRegisterRequestDTO dto =
                 new CategoryRegisterRequestDTO("Mercado");
@@ -125,7 +108,6 @@ public class CategoryServiceTest {
         when(categoryRepository.findByUserAndName(user, "Mercado"))
                 .thenReturn(Optional.of(new Category()));
 
-        // Act + Assert
         BadRequestException exception =
                 assertThrows(BadRequestException.class,
                         () -> categoryService.register(dto, user));
@@ -137,7 +119,6 @@ public class CategoryServiceTest {
 
     @Test
     void shouldThrowExceptionWhenUpdatingNonExistingCategory() {
-        // Arrange
         User user = new User();
         CategoryUpdateRequestDTO dto =
                 new CategoryUpdateRequestDTO(1L, "Nova Categoria");
@@ -145,7 +126,6 @@ public class CategoryServiceTest {
         when(categoryRepository.findByUserAndCategoryId(user, 1L))
                 .thenReturn(Optional.empty());
 
-        // Act + Assert
         BadRequestException exception =
                 assertThrows(BadRequestException.class,
                         () -> categoryService.update(dto, user));
@@ -155,17 +135,14 @@ public class CategoryServiceTest {
 
     @Test
     void shouldDeleteCategorySuccessfully() {
-        // Arrange
         User user = new User();
         Category category = new Category();
 
         when(categoryRepository.findByUserAndCategoryId(user, 1L))
                 .thenReturn(Optional.of(category));
 
-        // Act
         categoryService.deleteById(1L, user);
 
-        // Assert
         verify(categoryRepository).deleteById(1L);
     }
 
