@@ -13,7 +13,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/shopping-list")
+@RequestMapping("/shopping-lists")
 public class ShoppingListController {
     private final ShoppingListService shoppingListService;
     private final ShoppingListApplicationService shoppingListApplicationService;
@@ -36,13 +36,13 @@ public class ShoppingListController {
         return ResponseEntity.ok(new ApiResponse<>(true, "Lista obtida com sucesso.", shoppingListDTO));
     }
 
-    @PatchMapping("/update-item") // mudar para /item/update
-    public ResponseEntity<ApiResponse<Void>> updateShoppingListItem(@Valid @RequestBody ShoppingListItemUpdateRequest dto) {
-        shoppingListService.updateShoppingListItem(dto);
+    @PatchMapping("/items/{itemId}")
+    public ResponseEntity<ApiResponse<Void>> updateShoppingListItem(@PathVariable Long itemId, @Valid @RequestBody ShoppingListItemUpdateRequest dto) {
+        shoppingListService.updateShoppingListItem(itemId, dto);
         return ResponseEntity.ok(new ApiResponse<>(true, "Item atualizado com sucesso", null));
     }
 
-    @DeleteMapping("/delete-item/{shoppingListItemId}") // mudar para /item/delete
+    @DeleteMapping("/items/{shoppingListItemId}")
     public ResponseEntity<ApiResponse<Void>> deleteShoppingListItem(@PathVariable Long shoppingListItemId) {
         shoppingListService.deleteShoppingListItemById(shoppingListItemId);
         return ResponseEntity.ok(new ApiResponse<>(true, "Item excluído com sucesso", null));
@@ -53,7 +53,7 @@ public class ShoppingListController {
      * Atualizar os itens
      * Desativar a lista
      */
-//    @PostMapping("/checkout")
+//    @PostMapping("/{id}/checkout")
 //    public ResponseEntity<ApiResponse<Void>> checkout() {
 //        return ResponseEntity.ok(new ApiResponse<>(true, "Compra finalizada com sucesso", null));
 //    }
