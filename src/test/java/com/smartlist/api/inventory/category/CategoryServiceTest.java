@@ -121,14 +121,14 @@ public class CategoryServiceTest {
     void shouldThrowExceptionWhenUpdatingNonExistingCategory() {
         User user = new User();
         CategoryUpdateRequestDTO dto =
-                new CategoryUpdateRequestDTO(1L, "Nova Categoria");
+                new CategoryUpdateRequestDTO("Nova Categoria");
 
         when(categoryRepository.findByUserAndCategoryId(user, 1L))
                 .thenReturn(Optional.empty());
 
         BadRequestException exception =
                 assertThrows(BadRequestException.class,
-                        () -> categoryService.update(dto, user));
+                        () -> categoryService.update(1L, dto, user));
 
         assertEquals("C1003", exception.getCode());
     }
