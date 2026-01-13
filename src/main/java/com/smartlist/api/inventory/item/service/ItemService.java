@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -130,8 +131,9 @@ public class ItemService {
             item.setAvgConsumptionPerDay(convertToDailyAverage(item.getAvgConsumptionValue(), item.getAvgConsumptionUnit()));
         }
 
-        if (!dto.criticalQuantityDaysOverride().equals(item.getCriticalQuantityDaysOverride())) {
-            item.setCriticalQuantityDaysOverride(dto.criticalQuantityDaysOverride());
+        Integer override = dto.criticalQuantityDaysOverride();
+        if (!Objects.equals(override, item.getCriticalQuantityDaysOverride())) {
+            item.setCriticalQuantityDaysOverride(override);
         }
 
         itemRepository.save(item);
