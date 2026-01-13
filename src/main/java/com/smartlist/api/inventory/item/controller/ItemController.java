@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
 
 
 @RestController
-@RequestMapping("/inventory")
+@RequestMapping("/inventory/items")
 public class ItemController {
     private final ItemService itemService;
 
@@ -42,21 +42,21 @@ public class ItemController {
         return ResponseEntity.ok(new ApiResponse<>(true, "Itens listados com sucesso.", response));
     }
 
-    @PostMapping("/item/register")
+    @PostMapping
     public ResponseEntity<ApiResponse<Void>> register(@RequestBody @Valid ItemRegisterRequestDTO requestDTO, @AuthenticationPrincipal UserDetailsImpl userDetails) {
         User user = userDetails.getUser();
         itemService.register(requestDTO, user);
         return ResponseEntity.ok(new ApiResponse<>(true, "Item cadastrado com sucesso.", null));
     }
 
-    @PatchMapping("/item/update")
-    public ResponseEntity<ApiResponse<Void>> update(@RequestBody @Valid ItemUpdateRequestDTO requestDTO, @AuthenticationPrincipal UserDetailsImpl userDetails) {
+    @PatchMapping("{itemId}")
+    public ResponseEntity<ApiResponse<Void>> update(@PathVariable Long itemId, @RequestBody @Valid ItemUpdateRequestDTO requestDTO, @AuthenticationPrincipal UserDetailsImpl userDetails) {
         User user = userDetails.getUser();
-        itemService.update(requestDTO, user);
+        itemService.update(itemId, requestDTO, user);
         return ResponseEntity.ok(new ApiResponse<>(true, "Item atualizado com sucesso", null));
     }
 
-    @DeleteMapping("/item/delete/{itemId}")
+    @DeleteMapping("{itemId}")
     public ResponseEntity<ApiResponse<Void>> delete(@PathVariable Long itemId, @AuthenticationPrincipal UserDetailsImpl userDetails) {
         User user = userDetails.getUser();
         itemService.deleteById(itemId, user);

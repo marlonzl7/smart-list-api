@@ -97,11 +97,11 @@ public class ShoppingListService {
         log.info("Cadastro de item na lista de compras realizado com sucesso. Item ID: {}.", item.getItemId());
     }
 
-    public void updateShoppingListItem(ShoppingListItemUpdateRequest itemDTO) {
-        log.info("Iniciando tentativa de atualização de item da lista de compras. Item ID: {}", itemDTO.shoppingListItemId());
+    public void updateShoppingListItem(Long itemId, ShoppingListItemUpdateRequest itemDTO) {
+        log.info("Iniciando tentativa de atualização de item da lista de compras. Item ID: {}", itemId);
 
-        ShoppingListItem item = shoppingListItemRepository.findById(itemDTO.shoppingListItemId()).orElseThrow(() -> {
-            log.error("Tentativa de atualização de item de lista de compras inexistente. Item ID: {}", itemDTO.shoppingListItemId());
+        ShoppingListItem item = shoppingListItemRepository.findById(itemId).orElseThrow(() -> {
+            log.error("Tentativa de atualização de item de lista de compras inexistente. Item ID: {}", itemId);
             return new BadRequestException("SL1004", "Item inexistente");
         });
 
@@ -123,7 +123,7 @@ public class ShoppingListService {
 
         shoppingListItemRepository.save(item);
 
-        log.info("Item da lista de compras atualizado com sucesso. Item ID: {}", itemDTO.shoppingListItemId());
+        log.info("Item da lista de compras atualizado com sucesso. Item ID: {}", itemId);
     }
 
     public void deleteShoppingListItemById(Long shoppingListItemId) {

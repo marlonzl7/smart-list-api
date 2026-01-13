@@ -178,11 +178,11 @@ public class ShoppingListServiceTest {
                 .thenReturn(Optional.empty());
 
         ShoppingListItemUpdateRequest request =
-                new ShoppingListItemUpdateRequest(1L, BigDecimal.ONE, BigDecimal.TEN);
+                new ShoppingListItemUpdateRequest(BigDecimal.ONE, BigDecimal.TEN);
 
         BadRequestException ex = assertThrows(
                 BadRequestException.class,
-                () -> shoppingListService.updateShoppingListItem(request)
+                () -> shoppingListService.updateShoppingListItem(1L, request)
         );
 
         assertEquals("SL1004", ex.getCode());
@@ -198,9 +198,9 @@ public class ShoppingListServiceTest {
                 .thenReturn(Optional.of(item));
 
         ShoppingListItemUpdateRequest request =
-                new ShoppingListItemUpdateRequest(1L, BigDecimal.TWO, BigDecimal.TEN);
+                new ShoppingListItemUpdateRequest(BigDecimal.TWO, BigDecimal.TEN);
 
-        shoppingListService.updateShoppingListItem(request);
+        shoppingListService.updateShoppingListItem(1L, request);
 
         verify(item).recalculateSubtotal();
         verify(shoppingListItemRepository).save(item);

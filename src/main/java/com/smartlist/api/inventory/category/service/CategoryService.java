@@ -56,13 +56,15 @@ public class CategoryService {
         log.info("Categoria cadastrada com sucesso.");
     }
 
-    public void update(CategoryUpdateRequestDTO dto, User user) {
+    public void update(Long categoryId, CategoryUpdateRequestDTO dto, User user) {
         log.info("Iniciando tentativa de atualização de categoria");
 
-        Category category = categoryRepository.findByUserAndCategoryId(user, dto.categoryId()).orElseThrow(() -> {
-            log.error("Tentativa de atualização de categoria inexistente.");
-            return new BadRequestException("C1003", "Categoria inexistente.");
-        });
+        Category category = categoryRepository
+                .findByUserAndCategoryId(user, categoryId)
+                .orElseThrow(() -> {
+                    log.error("Tentativa de atualização de categoria inexistente.");
+                    return new BadRequestException("C1003", "Categoria inexistente.");
+                });
 
         category.setName(dto.name());
 
