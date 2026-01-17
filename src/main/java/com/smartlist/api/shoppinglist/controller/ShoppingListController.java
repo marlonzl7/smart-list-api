@@ -1,6 +1,7 @@
 package com.smartlist.api.shoppinglist.controller;
 
 import com.smartlist.api.shared.dto.ApiResponse;
+import com.smartlist.api.shoppinglist.dto.FinalizePurchaseRequest;
 import com.smartlist.api.shoppinglist.dto.ShoppingListDTO;
 import com.smartlist.api.shoppinglist.dto.ShoppingListItemUpdateRequest;
 import com.smartlist.api.shoppinglist.service.ShoppingListApplicationService;
@@ -48,13 +49,12 @@ public class ShoppingListController {
         return ResponseEntity.ok(new ApiResponse<>(true, "Item excluído com sucesso", null));
     }
 
-    // IMPLEMENTAR CHECKOUT
-    /* Passos:
-     * Atualizar os itens
-     * Desativar a lista
-     */
-//    @PostMapping("/{id}/checkout")
-//    public ResponseEntity<ApiResponse<Void>> checkout() {
-//        return ResponseEntity.ok(new ApiResponse<>(true, "Compra finalizada com sucesso", null));
-//    }
+    @PostMapping("{shoppingListId}/finalize")
+    public ResponseEntity<ApiResponse<Void>> finalize(@PathVariable Long shoppingListId, @Valid @RequestBody FinalizePurchaseRequest dto, @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        User user = userDetails.getUser();
+
+        shoppingListApplicationService.finalizeShoppingList(shoppingListId, dto, user);
+
+        return ResponseEntity.ok(new ApiResponse<>(true, "Compra finalizada com sucesso", null));
+    }
 }
