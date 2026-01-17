@@ -8,4 +8,5 @@ import java.util.Optional;
 
 public interface ShoppingListRepository extends JpaRepository<ShoppingList, Long> {
     Optional<ShoppingList> findByUserAndActiveTrue(User user);
+    Optional<ShoppingList> findByShoppingListIdAndUserAndActiveTrue(Long shoppingListId, User user);
 }
