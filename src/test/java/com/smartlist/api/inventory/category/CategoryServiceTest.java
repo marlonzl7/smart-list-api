@@ -134,6 +134,25 @@ public class CategoryServiceTest {
     }
 
     @Test
+    void shouldUpdateCategorySuccessfully() {
+        User user = new User();
+        Category category = new Category();
+        category.setCategoryId(1L);
+        category.setName("Antigo");
+
+        CategoryUpdateRequestDTO dto =
+                new CategoryUpdateRequestDTO("Novo Nome");
+
+        when(categoryRepository.findByUserAndCategoryId(user, 1L))
+                .thenReturn(Optional.of(category));
+
+        categoryService.update(1L, dto, user);
+
+        verify(categoryRepository).save(category);
+        assertEquals("Novo Nome", category.getName());
+    }
+
+    @Test
     void shouldDeleteCategorySuccessfully() {
         User user = new User();
         Category category = new Category();
@@ -144,6 +163,22 @@ public class CategoryServiceTest {
         categoryService.deleteById(1L, user);
 
         verify(categoryRepository).deleteById(1L);
+    }
+
+    @Test
+    void shouldThrowExceptionWhenDeletingNonExistingCategory() {
+        User user = new User();
+
+        when(categoryRepository.findByUserAndCategoryId(user, 1L))
+                .thenReturn(Optional.empty());
+
+        BadRequestException exception =
+                assertThrows(BadRequestException.class,
+                        () -> categoryService.deleteById(1L, user));
+
+        assertEquals("C1004", exception.getCode());
+
+        verify(categoryRepository, never()).deleteById(any());
     }
 
 }
