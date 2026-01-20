@@ -20,29 +20,43 @@ public class InventoryService {
     }
 
     public BigDecimal calculateVirtualStock(Item item) {
+        if (item.getLastStockUpdate() == null) {
+            log.debug(
+                    "Item sem lastStockUpdate. Assumindo estoque atual como base. ItemId={}",
+                    item.getItemId()
+            );
+            return item.getQuantity();
+        }
+
         long days = ChronoUnit.DAYS.between(item.getLastStockUpdate(), LocalDate.now());
-        return item.getQuantity().subtract(
-                item.getAvgConsumptionPerDay().multiply(
-                        BigDecimal.valueOf(days)
-                )
+        days = Math.max(days, 0);
+
+        BigDecimal virtualStock = item.getQuantity().subtract(
+                item.getAvgConsumptionPerDay().multiply(BigDecimal.valueOf(days))
         );
+
+        return virtualStock.max(BigDecimal.ZERO);
+    }
+
+    private long resolveCriticalDays(Item item) {
+        return item.getCriticalQuantityDaysOverride() != null
+                ? item.getCriticalQuantityDaysOverride()
+                : item.getUser().getCriticalQuantityDays();
     }
 
     public boolean isCritical(Item item, BigDecimal virtualStock) {
-        long criticalDays = item.getCriticalQuantityDaysOverride() != null ? item.getCriticalQuantityDaysOverride() : item.getUser().getCriticalQuantityDays();
+        long criticalDays = resolveCriticalDays(item);
         BigDecimal criticalLimit = item.getAvgConsumptionPerDay().multiply(BigDecimal.valueOf(criticalDays));
 
         return virtualStock.compareTo(criticalLimit) <= 0;
     }
 
     public void processItem(Item item) {
-        log.info("Iniciado processamento do Item ID: {}", item.getItemId());
+        log.debug("Processando item. ItemId={}", item.getItemId());
         BigDecimal virtualStock = calculateVirtualStock(item);
 
         if (isCritical(item, virtualStock)) {
             shoppingListService.addItemToShoppingList(item, item.getUser());
         }
-
-        log.info("Processamento finalizado do Item ID: {}", item.getItemId());
     }
 }

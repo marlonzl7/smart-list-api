@@ -1,14 +1,12 @@
 package com.smartlist.api.shoppinglist.service;
 
 import com.smartlist.api.exceptions.BadRequestException;
-import com.smartlist.api.inventory.item.model.Item;
 import com.smartlist.api.inventory.item.repository.ItemRepository;
 import com.smartlist.api.inventory.item.service.ItemService;
 import com.smartlist.api.inventory.service.InventoryApplicationService;
 import com.smartlist.api.shoppinglist.dto.FinalizePurchaseRequest;
-import com.smartlist.api.shoppinglist.dto.PurchasedItemDTO;
-import com.smartlist.api.shoppinglist.dto.ShoppingListDTO;
-import com.smartlist.api.shoppinglist.dto.ShoppingListItemUpdateRequest;
+import com.smartlist.api.shoppinglist.dto.PurchasedItemRequest;
+import com.smartlist.api.shoppinglist.dto.ShoppingListResponse;
 import com.smartlist.api.shoppinglist.model.ShoppingList;
 import com.smartlist.api.shoppinglist.repository.ShoppingListRepository;
 import com.smartlist.api.shoppinglistitem.model.ShoppingListItem;
@@ -46,45 +44,72 @@ public class ShoppingListApplicationService {
         this.itemRepository = itemRepository;
     }
 
-    public ShoppingListDTO getActiveShoppingList(User user) {
-        ShoppingListDTO dto = shoppingListService.getActiveShoppingListByUser(user);
-
-        inventoryApplicationService.onItemUpdated(user);
-
-        return dto;
+    public ShoppingListResponse getActive(User user) {
+        inventoryApplicationService.refreshInventory(user);
+        return shoppingListService.getActiveShoppingListByUser(user);
     }
 
     @Transactional
-    public boolean finalizeShoppingList(Long shoppingListId, FinalizePurchaseRequest finalizePurchaseRequestDTO, User user) {
-        log.info("Iniciando processo de finalização de compra para usuário ID: {}", user.getUserId());
+    public void finalizeShoppingList(Long shoppingListId, FinalizePurchaseRequest finalizePurchaseRequestDTO, User user) {
+        log.info(
+                "Finalização de compra iniciada. UserId={}, ShoppingListId={}",
+                user.getUserId(),
+                shoppingListId
+        );
 
-        Map<Long, PurchasedItemDTO> purchasedItems = new HashMap<>();
+        Map<Long, PurchasedItemRequest> purchasedItems = new HashMap<>();
 
-        for (PurchasedItemDTO item : finalizePurchaseRequestDTO.items()) {
+        for (PurchasedItemRequest item : finalizePurchaseRequestDTO.items()) {
             purchasedItems.put(item.shoppingListItemId(), item);
         }
 
         ShoppingList shoppingList = shoppingListRepository
                 .findByShoppingListIdAndUserAndActiveTrue(shoppingListId, user)
                 .orElseThrow(() -> {
-                    log.error("Tentativa de finalização de compra com lista de compra inexistente ou inativa");
+                    log.warn(
+                            "Lista inexistente ou inativa na finalização. UserId={}, ShoppingListId={}",
+                            user.getUserId(),
+                            shoppingListId
+                    );
                     return new BadRequestException("SLA1001", "Lista inexistente ou inativa");
                 });
 
         List<ShoppingListItem> shoppingListItems = shoppingList.getItems();
 
+        for (Long id : purchasedItems.keySet()) {
+            boolean exists = shoppingListItems.stream()
+                    .anyMatch(i -> i.getShoppingListItemId().equals(id));
+
+            if (!exists) {
+                log.warn(
+                        "Item inválido na finalização da compra. UserId={}, ShoppingListItemId={}",
+                        user.getUserId(),
+                        id
+                );
+                throw new BadRequestException("SLA1002", "Item inválido na finalização da compra");
+            }
+        }
+
         for (ShoppingListItem shoppingListItem : shoppingListItems) {
 
-            PurchasedItemDTO dto = purchasedItems.get(shoppingListItem.getShoppingListItemId());
+            PurchasedItemRequest dto = purchasedItems.get(shoppingListItem.getShoppingListItemId());
 
             if (dto != null) {
 
-                if (dto.purchasedQuantity().compareTo(BigDecimal.ZERO) < 0) {
-                    throw new BadRequestException("SLA1002", "Quantidade inválida");
+                if (dto.purchasedQuantity().compareTo(BigDecimal.ZERO) > 0 &&
+                        dto.unitaryPrice() == null) {
+                    throw new BadRequestException(
+                            "SLA1003",
+                            "Preço unitário é obrigatório quando a quantidade comprada é maior que zero"
+                    );
                 }
 
-                if (dto.unitaryPrice() == null || dto.unitaryPrice().compareTo(BigDecimal.ZERO) < 0) {
-                    throw new BadRequestException("SLA1003", "Preço unitário inválido");
+                if (dto.unitaryPrice() != null &&
+                        dto.unitaryPrice().compareTo(BigDecimal.ZERO) < 0) {
+                    throw new BadRequestException(
+                            "SLA1004",
+                            "Preço unitário inválido"
+                    );
                 }
 
                 shoppingListItem.setPurchasedQuantity(dto.purchasedQuantity());
@@ -92,7 +117,6 @@ public class ShoppingListApplicationService {
                 shoppingListItem.setSubtotal(dto.purchasedQuantity().multiply(dto.unitaryPrice()));
 
                 inventoryApplicationService.addStock(user, shoppingListItem.getItem(), dto.purchasedQuantity());
-
             } else {
                 shoppingListItem.setPurchasedQuantity(BigDecimal.ZERO);
                 shoppingListItem.setUnitaryPrice(null);
@@ -104,6 +128,10 @@ public class ShoppingListApplicationService {
         shoppingList.setActive(false);
         shoppingListRepository.save(shoppingList);
 
-        return true;
+        log.info(
+                "Compra finalizada com sucesso. UserId={}, ShoppingListId={}",
+                user.getUserId(),
+                shoppingListId
+        );
     }
 }
