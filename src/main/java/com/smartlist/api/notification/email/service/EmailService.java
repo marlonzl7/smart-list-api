@@ -1,6 +1,6 @@
-package com.smartlist.api.email.service;
+package com.smartlist.api.notification.email.service;
 
-import com.smartlist.api.email.core.EmailSender;
+import com.smartlist.api.notification.email.core.EmailSender;
 import org.springframework.stereotype.Service;
 
 @Service

@@ -3,15 +3,13 @@ package com.smartlist.api.inventory.item.service;
 import com.smartlist.api.exceptions.BadRequestException;
 import com.smartlist.api.inventory.category.model.Category;
 import com.smartlist.api.inventory.category.repository.CategoryRepository;
-import com.smartlist.api.inventory.item.dto.ItemListResponseDTO;
-import com.smartlist.api.inventory.item.dto.ItemRegisterRequestDTO;
-import com.smartlist.api.inventory.item.dto.ItemUpdateRequestDTO;
+import com.smartlist.api.inventory.item.dto.ItemListResponse;
+import com.smartlist.api.inventory.item.dto.ItemRegisterRequest;
+import com.smartlist.api.inventory.item.dto.ItemUpdateRequest;
 import com.smartlist.api.inventory.item.enums.AverageConsumptionUnit;
-import com.smartlist.api.inventory.item.enums.UnitOfMeasure;
 import com.smartlist.api.inventory.item.model.Item;
 import com.smartlist.api.inventory.item.repository.ItemRepository;
 import com.smartlist.api.inventory.service.InventoryApplicationService;
-import com.smartlist.api.inventory.service.InventoryService;
 import com.smartlist.api.user.model.User;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -22,7 +20,6 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.Objects;
-import java.util.Optional;
 
 @Service
 @Slf4j
@@ -37,9 +34,9 @@ public class ItemService {
         this.inventoryApplicationService = inventoryApplicationService;
     }
 
-    public Page<ItemListResponseDTO> list(User user, Pageable pageable) {
+    public Page<ItemListResponse> list(User user, Pageable pageable) {
         return itemRepository.findByUser(user, pageable)
-                .map(item -> new ItemListResponseDTO(
+                .map(item -> new ItemListResponse(
                         item.getItemId(),
                         item.getName(),
                         item.getQuantity(),
@@ -52,8 +49,23 @@ public class ItemService {
                 ));
     }
 
-    public void register(ItemRegisterRequestDTO dto, User user) {
-        log.info("Iniciando tentativa de cadastro de item");
+    public void register(ItemRegisterRequest dto, User user) {
+        log.info("Cadastro de item iniciado. UserId={}, Name={}", user.getUserId(), dto.name());
+
+        if (itemRepository.existsByUserAndName(user, dto.name())) {
+            log.warn(
+                    "Tentativa de cadastro de item duplicado. UserId={}, ItemName={}",
+                    user.getUserId(),
+                    dto.name()
+            );
+            throw new BadRequestException("I1013", "Item já cadastrado");
+        }
+
+        validateNonNegative(dto.quantity(), "I1006", "Quantidade não pode ser negativa");
+        validateNonNegative(dto.price(), "I1007", "Preço não pode ser negativo");
+        validateNonNegative(dto.avgConsumptionValue(), "I1008", "Consumo médio não pode ser negativo");
+
+        validateConsumptionUnit(dto.avgConsumptionValue(), dto.avgConsumptionUnit());
 
         Item item = new Item();
         item.setUser(user);
@@ -75,7 +87,11 @@ public class ItemService {
 
             Category category = categoryRepository.findByUserAndCategoryId(user, dto.categoryId())
                     .orElseThrow(() -> {
-                        log.error("Tentativa de cadastro de item com categoria inexistente");
+                        log.warn(
+                                "Tentativa de cadastro de item com categoria inexistente. UserId={}, CategoryId={}",
+                                user.getUserId(),
+                                dto.categoryId()
+                        );
                         return new BadRequestException("I1003", "Categoria inexistente");
                     });
 
@@ -84,48 +100,58 @@ public class ItemService {
 
         itemRepository.save(item);
 
-        log.info("Cadastro de item realizado com sucesso.");
+        log.info(
+                "Item cadastrado com sucesso. UserId={}, ItemId={}",
+                user.getUserId(),
+                item.getItemId()
+        );
     }
 
-    public void update(Long itemId, ItemUpdateRequestDTO dto, User user) {
-        log.info("Iniciando tentativa de atualização de Item");
+    public void update(Long itemId, ItemUpdateRequest dto, User user) {
+        log.info("Atualização de item iniciada. UserId={}, ItemId={}", user.getUserId(), itemId);
 
-        Item item = itemRepository
-                .findByUserAndItemId(user, itemId)
+        Item item = itemRepository.findByUserAndItemId(user, itemId)
                 .orElseThrow(() -> {
-                    log.error("Tentativa de atualização de item inexistente");
+                    log.warn(
+                            "Tentativa de atualização de item inexistente. UserId={}, ItemId={}",
+                            user.getUserId(),
+                            itemId
+                    );
                     return new BadRequestException("I1004", "Item inexistente");
                 });
 
-        if (!dto.name().equals(item.getName())) {
+        validateNonNegative(dto.quantity(), "I1009", "Quantidade não pode ser negativa");
+        validateNonNegative(dto.price(), "I1010", "Preço não pode ser negativo");
+        validateNonNegative(dto.avgConsumptionValue(), "I1011", "Consumo médio não pode ser negativo");
+
+        validateConsumptionUnit(dto.avgConsumptionValue(), dto.avgConsumptionUnit());
+
+        if (dto.name() != null && !dto.name().equals(item.getName())) {
             item.setName(dto.name());
         }
 
-        if (!dto.quantity().equals(item.getQuantity())) {
+        if (dto.quantity() != null && !dto.quantity().equals(item.getQuantity())) {
             item.setQuantity(dto.quantity());
             item.setLastStockUpdate(LocalDate.now());
         }
 
-        if (!dto.unit().equals(item.getUnit())) {
+        if (dto.unit() != null && !dto.unit().equals(item.getUnit())) {
             item.setUnit(dto.unit());
         }
 
-        if (!dto.price().equals(item.getPrice())) {
+        if (dto.price() != null && !dto.price().equals(item.getPrice())) {
             item.setPrice(dto.price());
-        }
-
-        if (!dto.avgConsumptionValue().equals(item.getAvgConsumptionValue())) {
-            item.setAvgConsumptionValue(dto.avgConsumptionValue());
         }
 
         boolean shouldRecalculateAvgPerDay = false;
 
-        if (!dto.avgConsumptionValue().equals(item.getAvgConsumptionValue())) {
+        if (dto.avgConsumptionValue() != null && !dto.avgConsumptionValue().equals(item.getAvgConsumptionValue())) {
             item.setAvgConsumptionValue(dto.avgConsumptionValue());
             shouldRecalculateAvgPerDay = true;
         }
 
-        if (!dto.avgConsumptionUnit().equals(item.getAvgConsumptionUnit())) {
+        if (dto.avgConsumptionUnit() != null && !dto.avgConsumptionUnit().equals(item.getAvgConsumptionUnit())) {
+            item.setAvgConsumptionUnit(dto.avgConsumptionUnit());
             shouldRecalculateAvgPerDay = true;
         }
 
@@ -138,23 +164,63 @@ public class ItemService {
             item.setCriticalQuantityDaysOverride(override);
         }
 
-        itemRepository.save(item);
-        inventoryApplicationService.onItemUpdated(user);
+        if (dto.categoryId() != null) {
+            Category category = categoryRepository.findByUserAndCategoryId(user, dto.categoryId())
+                    .orElseThrow(() -> {
+                        throw new BadRequestException("I1005", "Categoria inexistente");
+                    });
 
-        log.info("Item atualizado com sucesso.");
+            item.setCategory(category);
+        } else {
+            item.setCategory(null);
+        }
+
+        itemRepository.save(item);
+        inventoryApplicationService.onItemUpdated(item);
+
+        log.info("Item atualizado com sucesso. UserId={}, ItemId={}", user.getUserId(), itemId);
     }
 
     public void deleteById(Long itemId, User user) {
-        log.info("Iniciando tentativa de exclusão de item");
+        log.info(
+                "Tentativa de exclusão de item iniciada. UserId={}, ItemId={}",
+                user.getUserId(),
+                itemId
+        );
 
-        Item item = itemRepository.findByUserAndItemId(user, itemId).orElseThrow(() -> {
-            log.error("Tentativa de exclusão de item inexistente");
-            return new BadRequestException("I1004", "Item inexistente");
-        });
+        Item item = itemRepository.findByUserAndItemId(user, itemId)
+                .orElseThrow(() -> {
+                    log.info(
+                            "Tentativa de exclusão de item iniciada. UserId={}, ItemId={}",
+                            user.getUserId(),
+                            itemId
+                    );
+                    throw new BadRequestException("I1004", "Item inexistente");
+                });
 
-        itemRepository.deleteById(itemId);
+        itemRepository.delete(item);
 
-        log.info("Item excluído com sucesso.");
+        log.info(
+                "Tentativa de exclusão de item iniciada. UserId={}, ItemId={}",
+                user.getUserId(),
+                itemId
+        );
+    }
+
+    private void validateNonNegative(BigDecimal value, String erroCode, String message) {
+        if (value != null && value.compareTo(BigDecimal.ZERO) < 0) {
+            throw new BadRequestException(erroCode, message);
+        }
+    }
+
+    private void validateConsumptionUnit(BigDecimal consumptionValue, AverageConsumptionUnit unit) {
+        boolean onlyOneFilled =
+                (consumptionValue == null && unit != null) ||
+                (consumptionValue != null && unit == null);
+
+        if (onlyOneFilled) {
+            throw new BadRequestException("I1012", "Consumo médio e unidade devem ser informados juntos");
+        }
     }
 
     private BigDecimal convertToDailyAverage(BigDecimal value, AverageConsumptionUnit unit) {

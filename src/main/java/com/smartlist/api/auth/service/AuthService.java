@@ -1,6 +1,7 @@
 package com.smartlist.api.auth.service;
 
-import com.smartlist.api.auth.dto.LoginDTO;
+import com.smartlist.api.auth.dto.LoginRequest;
+import com.smartlist.api.auth.dto.TokenResponse;
 import com.smartlist.api.exceptions.InvalidCredentialsException;
 import com.smartlist.api.exceptions.InvalidJwtException;
 import com.smartlist.api.refreshtoken.model.RefreshToken;
@@ -13,8 +14,12 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.time.Duration;
 import java.util.Optional;
 
 @Slf4j
@@ -32,34 +37,53 @@ public class AuthService {
         this.refreshTokenRepository = refreshTokenRepository;
     }
 
-    public boolean authenticate(LoginDTO dto) {
-        log.info("Iniciada tentativa de autenticação para email: {}", dto.email());
+    public TokenResponse login(LoginRequest dto, HttpServletResponse response) {
+        User user = authenticate(dto);
+
+        String accessToken = createAccessToken(dto.email());
+        String refreshToken = createRefreshToken(dto.email());
+
+        saveRefreshToken(refreshToken, user);
+
+        ResponseCookie cookie = ResponseCookie.from("refreshToken", refreshToken)
+                .httpOnly(true)
+                .sameSite("Lax")
+                .path("/")
+                .maxAge(Duration.ofDays(7))
+                .build();
+
+        response.setHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+
+        return new TokenResponse(accessToken);
+    }
+
+    private User authenticate(LoginRequest dto) {
+        log.info("Tentativa de autenticação iniciada. Email={}", dto.email());
 
         User user = userRepository.findByEmail(dto.email()).orElseThrow(() -> {
-            log.error("Usuário não encontrado com email: {}", dto.email());
+            log.warn("Falha de autenticação: usuário inexistente. Email={}", dto.email());
             return new InvalidCredentialsException("A1001", "Credenciais inválidas");
         });
 
         if (!passwordEncoder.matches(dto.password(), user.getPassword())) {
-            log.error("Senha incorreta para email: {}", dto.email());
+            log.warn("Falha de autenticação: senha incorreta. Email={}", dto.email());
             throw new InvalidCredentialsException("A1001", "Credenciais inválidas");
         }
 
-        log.info("Autenticação efetuada com sucesso para mail: {}", user.getEmail());
-
-        return true;
+        log.info("Login realizado com sucesso. UserId={}", user.getUserId());
+        return user;
     }
 
-    public String createAccessToken(String username) {
+    private String createAccessToken(String username) {
         return jwtUtils.generateAccessToken(username);
     }
 
-    public String createRefreshToken(String username) {
+    private String createRefreshToken(String username) {
         return jwtUtils.generateRefreshToken(username);
     }
 
     public void saveRefreshToken(String token, User user) {
-        log.info("Refresh Token criado para usuário ID: {}", user.getUserId());
+        log.info("Refresh Token criado. UserId={}", user.getUserId());
         Claims claims = jwtUtils.getClaimsFromToken(token);
 
         RefreshToken refreshToken = new RefreshToken();
@@ -85,16 +109,25 @@ public class AuthService {
         }
 
         if (refreshToken == null || !jwtUtils.isValidToken(refreshToken)) {
-            log.error("Refresh token inválido ou ausente");
+            log.warn("Refresh token ausente ou inválido");
             throw new InvalidJwtException("A1002", "Refresh token inválido ou ausente");
         }
 
         Claims claims = jwtUtils.getClaimsFromToken(refreshToken);
         Optional<RefreshToken> optionalToken = refreshTokenRepository.findByToken(refreshToken);
 
-        if (optionalToken.isEmpty() || optionalToken.get().isUsed()) {
-            log.error("Refresh token já utilizado ou inexistente");
-            throw new InvalidJwtException("A1003", "Refresh token já utilizado ou inexistente");
+        if (optionalToken.isEmpty()) {
+            log.warn("Refresh token não encontrado no banco");
+            throw new InvalidJwtException("A1002", "Refresh token inválido");
+        }
+
+        if (optionalToken.get().isUsed()) {
+            log.error(
+                    "Reutilização de refresh token detectada. UserId={}",
+                    optionalToken.get().getUser().getUserId()
+            );
+            refreshTokenRepository.invalidateAllByUser(optionalToken.get().getUser());
+            throw new InvalidJwtException("A1003", "Refresh token reutilizado. Sessão invalidada.");
         }
 
         RefreshToken oldToken = optionalToken.get();
@@ -107,12 +140,16 @@ public class AuthService {
 
         saveRefreshToken(newRefreshToken, user);
 
-        String cookieHeader = String.format("refreshToken=%s; HttpOnly; Path=/; Max-Age=%d; SameSite=Lax",
-                newRefreshToken, 7 * 24 * 60 * 60);
-        response.setHeader("Set-Cookie", cookieHeader);
+        ResponseCookie cookie = ResponseCookie.from("refreshToken", newRefreshToken)
+                .httpOnly(true)
+                .sameSite("Lax")
+                .path("/")
+                .maxAge(Duration.ofDays(7))
+                .build();
 
-        log.info("Refresh token rotacionado com sucesso para usuário ID: {}", user.getUserId());
+        response.setHeader(HttpHeaders.SET_COOKIE, cookie.toString());
 
+        log.info("Refresh token rotacionado com sucesso. UserId={}", user.getUserId());
         return newAccessToken;
     }
 
@@ -138,6 +175,6 @@ public class AuthService {
         String clearCookie = "refreshToken=; HttpOnly; Path=/; Max-Age=0; SameSite=Lax";
         response.setHeader("Set-Cookie", clearCookie);
 
-        log.info("Logout efetuado. Refresh token invalidado (se presente).");
+        log.info("Logout realizado. Refresh token invalidado se existente.");
     }
 }

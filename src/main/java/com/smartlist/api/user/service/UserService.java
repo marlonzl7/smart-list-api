@@ -2,7 +2,7 @@ package com.smartlist.api.user.service;
 
 import com.smartlist.api.exceptions.EmailAlreadyExistsException;
 import com.smartlist.api.exceptions.PhoneNumberRequiredException;
-import com.smartlist.api.user.dto.RegisterDTO;
+import com.smartlist.api.user.dto.UserRegisterRequest;
 import com.smartlist.api.user.enums.NotificationPreference;
 import com.smartlist.api.user.enums.ThemePreference;
 import com.smartlist.api.user.model.User;
@@ -26,11 +26,14 @@ public class UserService {
         this.userRepository = userRepository;
     }
 
-    public void register(RegisterDTO dto) {
-        log.info("Iniciado tentativa cadastro de usuário para email: {}", dto.email());
+    public void register(UserRegisterRequest dto) {
+        log.info("Tentativa de cadastro de usuário iniciada");
 
         if (existsByEmail(dto.email())) {
-            log.error("Tentativa de cadastro com email já registrado. Email: {}", dto.email());
+            log.warn(
+                    "Tentativa de cadastro com email já existente. Email={}",
+                    dto.email()
+            );
             throw new EmailAlreadyExistsException("U6001", "Email já em uso.");
         }
 
@@ -42,7 +45,10 @@ public class UserService {
              dto.notificationPreference() == NotificationPreference.BOTH) &&
             (dto.phoneNumber() == null || dto.phoneNumber().isEmpty())
         ) {
-            log.error("Número de telefone omitido na tentativa de cadastro com a opção de notificação de preferência WHATSAPP ou BOTH. Email: {}", dto.email());
+            log.warn(
+                    "Número de telefone omitido para preferência de notificação WHATSAPP/BOTH. Email={}",
+                    dto.email()
+            );
             throw new PhoneNumberRequiredException("U6002", "Número de telefone é obrigatório para notificações via Whatsapp ou ambas.");
         }
 
@@ -62,7 +68,7 @@ public class UserService {
 
         userRepository.save(user);
 
-        log.info("Usuário cadastrado com sucesso. Email {}", user.getEmail());
+        log.info("Usuário cadastrado com sucesso. UserId={}, Email={}", user.getUserId(), user.getEmail());
     }
 
     public boolean existsByEmail(String email) {

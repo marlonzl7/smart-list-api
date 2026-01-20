@@ -40,10 +40,14 @@ public class CategoryService {
     }
 
     public void register(CategoryRegisterRequestDTO dto, User user) {
-        log.info("Iniciando tentativa de cadastro de categoria");
+        log.info("Cadastro de categoria iniciado. UserId={}, Name={}", user.getUserId(), dto.name());
 
         if (categoryRepository.findByUserAndName(user, dto.name()).isPresent()) {
-            log.error("Tentativa de cadastro de categoria já registrada.");
+            log.warn(
+                    "Tentativa de cadastro de categoria duplicada. UserId={}, Name={}",
+                    user.getUserId(),
+                    dto.name()
+            );
             throw new BadRequestException("C1001", "Já tem uma categoria registrada com esse nome.");
         }
 
@@ -53,16 +57,19 @@ public class CategoryService {
 
         categoryRepository.save(category);
 
-        log.info("Categoria cadastrada com sucesso.");
+        log.info("Categoria cadastrada com sucesso. UserId={}, CategoryId={}", user.getUserId(), category.getCategoryId());
     }
 
     public void update(Long categoryId, CategoryUpdateRequestDTO dto, User user) {
-        log.info("Iniciando tentativa de atualização de categoria");
+        log.info("Atualização de categoria iniciada. UserId={}, CategoryId={}", user.getUserId(), categoryId);
 
-        Category category = categoryRepository
-                .findByUserAndCategoryId(user, categoryId)
+        Category category = categoryRepository.findByUserAndCategoryId(user, categoryId)
                 .orElseThrow(() -> {
-                    log.error("Tentativa de atualização de categoria inexistente.");
+                    log.warn(
+                            "Tentativa de atualização de categoria inexistente. UserId={}, CategoryId={}",
+                            user.getUserId(),
+                            categoryId
+                    );
                     return new BadRequestException("C1003", "Categoria inexistente.");
                 });
 
@@ -70,19 +77,32 @@ public class CategoryService {
 
         categoryRepository.save(category);
 
-        log.info("Categoria atualizada com sucesso.");
+        log.info("Categoria atualizada com sucesso. UserId={}, CategoryId={}", user.getUserId(), categoryId);
     }
 
     public void deleteById(Long categoryId, User user) {
-        log.info("Iniciando tentativa de exclusão de categoria.");
+        log.info(
+                "Tentativa de exclusão de categoria iniciada. UserId={}, CategoryId={}",
+                user.getUserId(),
+                categoryId
+        );
 
-        Category category = categoryRepository.findByUserAndCategoryId(user, categoryId).orElseThrow(() -> {
-            log.error("Tentativa de exclusão de categoria inexistente.");
-            return new BadRequestException("C1004", "Categoria inexistente.");
-        });
+        Category category = categoryRepository.findByUserAndCategoryId(user, categoryId)
+                .orElseThrow(() -> {
+                    log.warn(
+                            "Tentativa de exclusão de categoria inexistente. UserId={}, CategoryId={}",
+                            user.getUserId(),
+                            categoryId
+                    );
+                    return new BadRequestException("C1004", "Categoria inexistente.");
+                });
 
         categoryRepository.deleteById(categoryId);
 
-        log.info("Categoria excluída com sucesso.");
+        log.info(
+                "Categoria excluída com sucesso. UserId={}, CategoryId={}",
+                user.getUserId(),
+                categoryId
+        );
     }
 }
