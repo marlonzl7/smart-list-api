@@ -138,7 +138,7 @@ public class PasswordResetService {
         return saved;
     }
 
-    private PasswordResetToken getValidToken(UUID token) {
+    public PasswordResetToken getValidToken(UUID token) {
         log.debug("Validando token de redefinição de senha recebido");
         PasswordResetToken resetToken = passwordResetTokenRepository.findByToken(token).orElseThrow(() -> {
             log.warn("Token de redefinição de senha não encontrado");
