@@ -1,7 +1,7 @@
 package com.smartlist.api.user.controller;
 
 import com.smartlist.api.shared.dto.ApiResponse;
-import com.smartlist.api.user.dto.RegisterDTO;
+import com.smartlist.api.user.dto.UserRegisterRequest;
 import com.smartlist.api.user.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -20,7 +20,7 @@ public class UserController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<ApiResponse<Void>> register(@RequestBody @Valid RegisterDTO request) {
+    public ResponseEntity<ApiResponse<Void>> register(@RequestBody @Valid UserRegisterRequest request) {
         userService.register(request);
         return ResponseEntity.ok(new ApiResponse<>(true, "Usuário registrado com sucesso.", null));
     }
