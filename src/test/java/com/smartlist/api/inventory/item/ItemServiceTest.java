@@ -2,8 +2,8 @@ package com.smartlist.api.inventory.item;
 
 import com.smartlist.api.exceptions.BadRequestException;
 import com.smartlist.api.inventory.category.repository.CategoryRepository;
-import com.smartlist.api.inventory.item.dto.ItemRegisterRequestDTO;
-import com.smartlist.api.inventory.item.dto.ItemUpdateRequestDTO;
+import com.smartlist.api.inventory.item.dto.ItemRegisterRequest;
+import com.smartlist.api.inventory.item.dto.ItemUpdateRequest;
 import com.smartlist.api.inventory.item.enums.AverageConsumptionUnit;
 import com.smartlist.api.inventory.item.enums.UnitOfMeasure;
 import com.smartlist.api.inventory.item.model.Item;
@@ -45,7 +45,7 @@ class ItemServiceTest {
     void shouldRegisterItemWithoutCategory() {
         User user = new User();
 
-        ItemRegisterRequestDTO dto = new ItemRegisterRequestDTO(
+        ItemRegisterRequest dto = new ItemRegisterRequest(
                 null,
                 "Arroz",
                 new BigDecimal("2"),
@@ -70,7 +70,7 @@ class ItemServiceTest {
     void shouldThrowExceptionWhenCategoryDoesNotExist() {
         User user = new User();
 
-        ItemRegisterRequestDTO dto = new ItemRegisterRequestDTO(
+        ItemRegisterRequest dto = new ItemRegisterRequest(
                 99L,
                 "Feijão",
                 new BigDecimal("1"),
@@ -96,7 +96,7 @@ class ItemServiceTest {
     void shouldThrowExceptionWhenUpdatingNonExistentItem() {
         User user = new User();
 
-        ItemUpdateRequestDTO dto = new ItemUpdateRequestDTO(
+        ItemUpdateRequest dto = new ItemUpdateRequest(
                 "Novo nome",
                 new BigDecimal("1"),
                 UnitOfMeasure.UNIT,
@@ -132,7 +132,7 @@ class ItemServiceTest {
         when(itemRepository.findByUserAndItemId(user, 1L))
                 .thenReturn(Optional.of(item));
 
-        ItemUpdateRequestDTO dto = new ItemUpdateRequestDTO(
+        ItemUpdateRequest dto = new ItemUpdateRequest(
                 "Item",
                 new BigDecimal("10"),
                 UnitOfMeasure.UNIT,

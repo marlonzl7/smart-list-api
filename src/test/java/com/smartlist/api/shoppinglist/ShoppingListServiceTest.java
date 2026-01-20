@@ -4,12 +4,12 @@ import com.smartlist.api.exceptions.BadRequestException;
 import com.smartlist.api.inventory.item.model.Item;
 import com.smartlist.api.inventory.item.repository.ItemRepository;
 import com.smartlist.api.inventory.service.InventoryService;
-import com.smartlist.api.shoppinglist.dto.ShoppingListDTO;
+import com.smartlist.api.shoppinglist.dto.ShoppingListResponse;
 import com.smartlist.api.shoppinglist.dto.ShoppingListItemUpdateRequest;
 import com.smartlist.api.shoppinglist.model.ShoppingList;
 import com.smartlist.api.shoppinglist.repository.ShoppingListRepository;
 import com.smartlist.api.shoppinglist.service.ShoppingListService;
-import com.smartlist.api.shoppinglistitem.dto.ShoppingListItemDTO;
+import com.smartlist.api.shoppinglistitem.dto.ShoppingListItemResponse;
 import com.smartlist.api.shoppinglistitem.model.ShoppingListItem;
 import com.smartlist.api.shoppinglistitem.repository.ShoppingListItemRepository;
 import com.smartlist.api.user.model.User;
@@ -62,8 +62,8 @@ public class ShoppingListServiceTest {
         shoppingList.setActive(true);
         shoppingList.setUser(user);
 
-        List<ShoppingListItemDTO> items = List.of(
-                new ShoppingListItemDTO(1L, "Arroz", BigDecimal.ONE, BigDecimal.TEN, BigDecimal.TEN)
+        List<ShoppingListItemResponse> items = List.of(
+                new ShoppingListItemResponse(1L, "Arroz", BigDecimal.ONE, BigDecimal.TEN, BigDecimal.TEN)
         );
 
         when(shoppingListRepository.findByUserAndActiveTrue(user))
@@ -72,7 +72,7 @@ public class ShoppingListServiceTest {
         when(shoppingListItemRepository.findItemsByShoppingListId(10L))
                 .thenReturn(items);
 
-        ShoppingListDTO dto = shoppingListService.getActiveShoppingListByUser(user);
+        ShoppingListResponse dto = shoppingListService.getActiveShoppingListByUser(user);
 
         assertEquals(10L, dto.shoppingListId());
         assertTrue(dto.isActive());
@@ -104,7 +104,7 @@ public class ShoppingListServiceTest {
         when(shoppingListItemRepository.findItemsByShoppingListId(20L))
                 .thenReturn(List.of());
 
-        ShoppingListDTO dto = shoppingListService.getShoppingListWithItems(20L);
+        ShoppingListResponse dto = shoppingListService.getShoppingListWithItems(20L);
 
         assertEquals(20L, dto.shoppingListId());
     }
