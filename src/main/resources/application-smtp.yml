@@ -1,0 +1,10 @@
+spring:
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: smartlistsuporte@gmail.com
+    password: ${SEND_EMAIL_FROM}
+    from: smartlistsuporte@gmail.com
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
