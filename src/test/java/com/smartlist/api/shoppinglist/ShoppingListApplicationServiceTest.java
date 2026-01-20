@@ -100,14 +100,13 @@ class ShoppingListApplicationServiceTest {
                 )
         );
 
-        boolean result = applicationService.finalizeShoppingList(
+        applicationService.finalizeShoppingList(
                 shoppingList.getShoppingListId(),
                 request,
                 user
         );
 
-        assertTrue(result);
-        assertFalse(shoppingList.isActive());
+        assertFalse(shoppingList.isActive(), "A lista deve ser marcada como inativa");
 
         assertEquals(new BigDecimal("2"), item1.getPurchasedQuantity());
         assertEquals(new BigDecimal("5.00"), item1.getUnitaryPrice());
@@ -125,6 +124,7 @@ class ShoppingListApplicationServiceTest {
 
         verify(shoppingListRepository).save(shoppingList);
     }
+
 
     @Test
     void shouldThrowExceptionWhenPurchasedQuantityIsNegative() {
