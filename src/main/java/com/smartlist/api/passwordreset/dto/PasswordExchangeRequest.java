@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotNull;
 
 import java.util.UUID;
 
-public record PasswordExchangeDTO(
+public record PasswordExchangeRequest(
         @NotNull(message = "Esperava um token.")
         UUID token,
 

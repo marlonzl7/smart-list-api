@@ -1,6 +1,6 @@
 package com.smartlist.api.auth.dto;
 
-public record TokenResponseDTO(
+public record TokenResponse(
         String accessToken
 ) {
 }
