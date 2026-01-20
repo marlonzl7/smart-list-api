@@ -1,6 +1,7 @@
 package com.smartlist.api.inventory.item;
 
 import com.smartlist.api.exceptions.BadRequestException;
+import com.smartlist.api.inventory.category.model.Category;
 import com.smartlist.api.inventory.category.repository.CategoryRepository;
 import com.smartlist.api.inventory.item.dto.ItemRegisterRequest;
 import com.smartlist.api.inventory.item.dto.ItemUpdateRequest;
@@ -20,11 +21,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.math.BigDecimal;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class ItemServiceTest {
@@ -35,147 +35,149 @@ class ItemServiceTest {
     @Mock
     private CategoryRepository categoryRepository;
 
-    @InjectMocks
-    private ItemService itemService;
-
     @Mock
     private InventoryApplicationService inventoryApplicationService;
+
+    @InjectMocks
+    private ItemService itemService;
 
     @Test
     void shouldRegisterItemWithoutCategory() {
         User user = new User();
-
-        ItemRegisterRequest dto = new ItemRegisterRequest(
-                null,
-                "Arroz",
-                new BigDecimal("2"),
-                UnitOfMeasure.KG,
-                new BigDecimal("30"),
-                AverageConsumptionUnit.MONTH,
-                new BigDecimal("10.50"),
-                null
-        );
+        ItemRegisterRequest dto = ItemBuilder.anItem().withCategory(null).buildRegisterRequest();
 
         itemService.register(dto, user);
 
         verify(itemRepository).save(argThat(item ->
-                "Arroz".equals(item.getName())
+                "Item Teste".equals(item.getName())
                         && item.getUser().equals(user)
-                        && item.getAvgConsumptionPerDay()
-                        .compareTo(new BigDecimal("1.000000")) == 0
+                        && item.getAvgConsumptionPerDay().compareTo(new BigDecimal("7")) == 0
+                        && item.getCategory() == null
         ));
     }
 
     @Test
-    void shouldThrowExceptionWhenCategoryDoesNotExist() {
+    void shouldRegisterItemWithCategory() {
         User user = new User();
+        ItemRegisterRequest dto = ItemBuilder.anItem().withCategory(1L).buildRegisterRequest();
+        Category category = ItemBuilder.anItem().withCategory(1L).buildCategory();
 
-        ItemRegisterRequest dto = new ItemRegisterRequest(
-                99L,
-                "Feijão",
-                new BigDecimal("1"),
-                UnitOfMeasure.KG,
-                new BigDecimal("7"),
-                AverageConsumptionUnit.WEEK,
-                new BigDecimal("8.00"),
-                null
-        );
+        when(categoryRepository.findByUserAndCategoryId(user, 1L))
+                .thenReturn(Optional.of(category));
 
-        when(categoryRepository.findByUserAndCategoryId(user, 99L))
-                .thenReturn(Optional.empty());
+        itemService.register(dto, user);
 
-        BadRequestException exception = assertThrows(
-                BadRequestException.class,
-                () -> itemService.register(dto, user)
-        );
-
-        assertEquals("I1003", exception.getCode());
+        verify(itemRepository).save(argThat(item ->
+                item.getCategory() == category
+        ));
     }
 
     @Test
-    void shouldThrowExceptionWhenUpdatingNonExistentItem() {
+    void shouldThrowExceptionWhenItemAlreadyExists() {
         User user = new User();
+        ItemRegisterRequest dto = ItemBuilder.anItem().buildRegisterRequest();
 
-        ItemUpdateRequest dto = new ItemUpdateRequest(
-                "Novo nome",
-                new BigDecimal("1"),
-                UnitOfMeasure.UNIT,
-                new BigDecimal("5.00"),
-                new BigDecimal("1"),
-                AverageConsumptionUnit.DAY,
-                null,
-                1L
-        );
+        when(itemRepository.existsByUserAndName(user, dto.name()))
+                .thenReturn(true);
 
-        when(itemRepository.findByUserAndItemId(user, 1L))
-                .thenReturn(Optional.empty());
+        BadRequestException exception = assertThrows(BadRequestException.class,
+                () -> itemService.register(dto, user));
 
-        assertThrows(BadRequestException.class, () ->
-                itemService.update(1L, dto, user)
-        );
+        assertEquals("I1013", exception.getCode());
+        verify(itemRepository, never()).save(any());
     }
 
     @Test
-    void shouldRecalculateAvgConsumptionWhenConsumptionParametersChange() {
+    void shouldThrowExceptionForNegativeValues() {
         User user = new User();
+        ItemRegisterRequest dto = ItemBuilder.anItem()
+                .withQuantity(new BigDecimal("-1"))
+                .buildRegisterRequest();
 
-        Item item = new Item();
-        item.setName("Item");
-        item.setUser(user);
-        item.setQuantity(new BigDecimal("10"));
-        item.setUnit(UnitOfMeasure.UNIT);
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> itemService.register(dto, user));
+        assertEquals("I1006", ex.getCode());
+    }
 
-        item.setAvgConsumptionValue(new BigDecimal("30"));
-        item.setAvgConsumptionUnit(AverageConsumptionUnit.MONTH);
-        item.setAvgConsumptionPerDay(new BigDecimal("1.000000"));
+    @Test
+    void shouldThrowExceptionForIncompleteAvgConsumption() {
+        User user = new User();
+        ItemRegisterRequest dto = ItemBuilder.anItem()
+                .withAvgConsumption(new BigDecimal("7"), null)
+                .buildRegisterRequest();
+
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> itemService.register(dto, user));
+        assertEquals("I1012", ex.getCode());
+    }
+
+    @Test
+    void shouldUpdateItemSuccessfully() {
+        User user = new User();
+        Item item = ItemBuilder.anItem().buildItem(user);
+        ItemUpdateRequest dto = ItemBuilder.anItem()
+                .withName("Novo Item")
+                .withQuantity(new BigDecimal("5"))
+                .withPrice(new BigDecimal("20.00"))
+                .withCategory(2L)
+                .withCriticalOverride(3)
+                .buildUpdateRequest();
+        Category category = ItemBuilder.anItem().withCategory(2L).buildCategory();
 
         when(itemRepository.findByUserAndItemId(user, 1L))
                 .thenReturn(Optional.of(item));
-
-        ItemUpdateRequest dto = new ItemUpdateRequest(
-                "Item",
-                new BigDecimal("10"),
-                UnitOfMeasure.UNIT,
-                new BigDecimal("7.00"),
-                new BigDecimal("7"),
-                AverageConsumptionUnit.WEEK,
-                null,
-                1L
-        );
+        when(categoryRepository.findByUserAndCategoryId(user, 2L))
+                .thenReturn(Optional.of(category));
 
         itemService.update(1L, dto, user);
 
         verify(itemRepository).save(argThat(saved ->
-                saved.getAvgConsumptionPerDay()
-                        .subtract(new BigDecimal("0.233333"))
-                        .abs()
-                        .compareTo(new BigDecimal("0.000001")) < 0
+                "Novo Item".equals(saved.getName())
+                        && saved.getQuantity().compareTo(new BigDecimal("5")) == 0
+                        && saved.getPrice().compareTo(new BigDecimal("20.00")) == 0
+                        && saved.getCategory() == category
+                        && saved.getCriticalQuantityDaysOverride() == 3
         ));
+
+        verify(inventoryApplicationService).onItemUpdated(item);
     }
 
+    @Test
+    void shouldThrowExceptionWhenUpdatingItemWithNonExistentCategory() {
+        User user = new User();
+        Item item = ItemBuilder.anItem().buildItem(user);
+        ItemUpdateRequest dto = ItemBuilder.anItem().withCategory(99L).buildUpdateRequest();
+
+        when(itemRepository.findByUserAndItemId(user, 1L))
+                .thenReturn(Optional.of(item));
+        when(categoryRepository.findByUserAndCategoryId(user, 99L))
+                .thenReturn(Optional.empty());
+
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> itemService.update(1L, dto, user));
+        assertEquals("I1005", ex.getCode());
+    }
 
     @Test
     void shouldThrowExceptionWhenDeletingNonExistentItem() {
         User user = new User();
-
         when(itemRepository.findByUserAndItemId(user, 1L))
                 .thenReturn(Optional.empty());
 
-        assertThrows(BadRequestException.class, () ->
-                itemService.deleteById(1L, user)
-        );
+        assertThrows(BadRequestException.class,
+                () -> itemService.deleteById(1L, user));
     }
 
     @Test
     void shouldDeleteItemSuccessfully() {
         User user = new User();
-        Item item = new Item();
+        Item item = ItemBuilder.anItem().buildItem(user);
 
         when(itemRepository.findByUserAndItemId(user, 1L))
                 .thenReturn(Optional.of(item));
 
         itemService.deleteById(1L, user);
 
-        verify(itemRepository).deleteById(1L);
+        verify(itemRepository).delete(item);
     }
 }
