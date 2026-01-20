@@ -1,0 +1,18 @@
+app:
+  cors:
+    allowed-origins:
+      - https://api.smartlist.com
+
+logging:
+  level:
+    root: INFO
+    com.smartlist.api: INFO
+
+  file:
+    name: logs/smartlist.log
+    max-size: 10MB
+    max-history: 3
+
+password:
+  reset:
+    link: ${FRONTEND_URL}/reset-password?token=

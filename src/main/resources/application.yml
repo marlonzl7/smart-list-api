@@ -1,0 +1,25 @@
+spring:
+  application:
+    name: smartlist-api
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+
+jwt:
+  secret: ${SMARTLIST_JWT_SECRET}
+  access-token-expiration: 900000
+  refresh-token-expiration: 604800000
+
+password:
+  reset:
+    expiration-seconds: 600
+    rate-limit:
+      email: 3
+      ip: 10
+      duration: 60
