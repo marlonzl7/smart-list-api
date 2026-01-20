@@ -1,0 +1,11 @@
+CREATE TABLE IF NOT EXISTS refresh_token (
+    refresh_token_id VARCHAR(64) PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    token TEXT NOT NULL UNIQUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    expires_at TIMESTAMP NOT NULL,
+    used BOOLEAN DEFAULT FALSE,
+
+    CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES users(user_id)
+);
