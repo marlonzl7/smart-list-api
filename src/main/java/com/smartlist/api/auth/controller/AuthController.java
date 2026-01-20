@@ -1,7 +1,7 @@
 package com.smartlist.api.auth.controller;
 
-import com.smartlist.api.auth.dto.LoginDTO;
-import com.smartlist.api.auth.dto.TokenResponseDTO;
+import com.smartlist.api.auth.dto.LoginRequest;
+import com.smartlist.api.auth.dto.TokenResponse;
 import com.smartlist.api.auth.service.AuthService;
 import com.smartlist.api.exceptions.InvalidCredentialsException;
 import com.smartlist.api.shared.dto.ApiResponse;
@@ -28,28 +28,15 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<TokenResponseDTO>> login(@RequestBody @Valid LoginDTO loginDTO, HttpServletResponse response) {
-        authService.authenticate(loginDTO);
-
-        String accessToken = authService.createAccessToken(loginDTO.email());
-        String refreshToken = authService.createRefreshToken(loginDTO.email());
-
-        User user = userRepository.findByEmail(loginDTO.email()).orElseThrow(() -> new InvalidCredentialsException("008", "Credenciais inválidas"));
-
-        authService.saveRefreshToken(refreshToken, user);
-
-        String cookieHeader = String.format("refreshToken=%s; HttpOnly; Path=/; Max-Age=%d; SameSite=Lax",
-                refreshToken, 7 * 24 * 60 * 60);
-
-        response.setHeader("Set-Cookie", cookieHeader);
-
-        return ResponseEntity.ok(new ApiResponse<>(true, "Login efetuado com sucesso.", new TokenResponseDTO(accessToken)));
+    public ResponseEntity<ApiResponse<TokenResponse>> login(@RequestBody @Valid LoginRequest dto, HttpServletResponse response) {
+        TokenResponse accessToken = authService.login(dto, response);
+        return ResponseEntity.ok(new ApiResponse<>(true, "Login efetuado com sucesso.", accessToken));
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<ApiResponse<TokenResponseDTO>> refreshToken(HttpServletRequest request, HttpServletResponse response) {
+    public ResponseEntity<ApiResponse<TokenResponse>> refreshToken(HttpServletRequest request, HttpServletResponse response) {
         String newAccessToken = authService.refreshToken(request, response);
-        return ResponseEntity.ok(new ApiResponse<>(true, "Token atualizado com sucesso.", new TokenResponseDTO(newAccessToken)));
+        return ResponseEntity.ok(new ApiResponse<>(true, "Token atualizado com sucesso.", new TokenResponse(newAccessToken)));
     }
 
     @PostMapping("/logout")

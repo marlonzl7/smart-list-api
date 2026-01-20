@@ -10,6 +10,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -38,20 +39,45 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             if (jwtUtils.isValidToken(jwt)) {
                 String username = jwtUtils.getUsernameFromToken(jwt);
-                User user = userRepository.findByEmail(username).orElseThrow(() -> {
-                    log.error("Usuário não encontrado: " + username);
-                    return new RuntimeException("Usuário não encontrado: " + username);
-                });
+                User user = userRepository.findByEmail(username).orElse(null);
+                if (user == null) {
+                    log.warn(
+                            "JWT inválido. IP={}, Method={}, URI={}",
+                            request.getRemoteAddr(),
+                            request.getMethod(),
+                            request.getRequestURI()
+                    );
+                    filterChain.doFilter(request, response);
+                    return;
+                }
 
                 UserDetailsImpl userDetails = new UserDetailsImpl(user);
 
-                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                UsernamePasswordAuthenticationToken authentication =
+                        new UsernamePasswordAuthenticationToken(
+                                userDetails,
+                                null,
+                                userDetails.getAuthorities()
+                        );
+
+                authentication.setDetails(
+                        new WebAuthenticationDetailsSource().buildDetails(request)
+                );
 
                 SecurityContextHolder.getContext().setAuthentication(authentication);
 
-                log.debug("Usuário autenticado via JWT: {}", username);
+                log.debug(
+                        "Usuário autenticado via JWT. UserId={}, Email={}",
+                        user.getUserId(),
+                        user.getEmail()
+                );
             } else {
-                log.warn("Token JWT inválido recebido no header Authorization");
+                log.warn(
+                        "Falha de autenticação JWT. IP={}, Method={}, URI={}",
+                        request.getRemoteAddr(),
+                        request.getMethod(),
+                        request.getRequestURI()
+                );
             }
         }
 
