@@ -96,6 +96,13 @@ public class ShoppingListApplicationService {
 
             if (dto != null) {
 
+                if (dto.purchasedQuantity().compareTo(BigDecimal.ZERO) < 0) {
+                    throw new BadRequestException(
+                            "SLA1002",
+                            "Quantidade comprada não pode ser negativa"
+                    );
+                }
+
                 if (dto.purchasedQuantity().compareTo(BigDecimal.ZERO) > 0 &&
                         dto.unitaryPrice() == null) {
                     throw new BadRequestException(
@@ -124,6 +131,7 @@ public class ShoppingListApplicationService {
             }
 
         }
+
 
         shoppingList.setActive(false);
         shoppingListRepository.save(shoppingList);

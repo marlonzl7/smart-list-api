@@ -106,4 +106,16 @@ public class InventoryServiceTest {
                 .addItemToShoppingList(any(), any());
     }
 
+    @Test
+    void shouldUseCurrentQuantityWhenLastStockUpdateIsNull() {
+        Item item = new Item();
+        item.setQuantity(new BigDecimal("15"));
+        item.setAvgConsumptionPerDay(new BigDecimal("2"));
+        item.setLastStockUpdate(null);
+
+        BigDecimal result = inventoryService.calculateVirtualStock(item);
+
+        assertEquals(new BigDecimal("15"), result);
+    }
+
 }

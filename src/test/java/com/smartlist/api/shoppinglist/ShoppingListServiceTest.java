@@ -2,8 +2,6 @@ package com.smartlist.api.shoppinglist;
 
 import com.smartlist.api.exceptions.BadRequestException;
 import com.smartlist.api.inventory.item.model.Item;
-import com.smartlist.api.inventory.item.repository.ItemRepository;
-import com.smartlist.api.inventory.service.InventoryService;
 import com.smartlist.api.shoppinglist.dto.ShoppingListResponse;
 import com.smartlist.api.shoppinglist.dto.ShoppingListItemUpdateRequest;
 import com.smartlist.api.shoppinglist.model.ShoppingList;
@@ -25,7 +23,6 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -39,12 +36,6 @@ public class ShoppingListServiceTest {
 
     @Mock
     private ShoppingListItemRepository shoppingListItemRepository;
-
-    @Mock
-    private ItemRepository itemRepository;
-
-    @Mock
-    private InventoryService inventoryService;
 
     private User user;
 
@@ -97,26 +88,27 @@ public class ShoppingListServiceTest {
         ShoppingList shoppingList = new ShoppingList();
         shoppingList.setShoppingListId(20L);
         shoppingList.setActive(false);
+        shoppingList.setUser(user);
 
-        when(shoppingListRepository.findById(20L))
+        when(shoppingListRepository.findByShoppingListIdAndUser(20L, user))
                 .thenReturn(Optional.of(shoppingList));
 
         when(shoppingListItemRepository.findItemsByShoppingListId(20L))
                 .thenReturn(List.of());
 
-        ShoppingListResponse dto = shoppingListService.getShoppingListWithItems(20L);
+        ShoppingListResponse dto = shoppingListService.getShoppingListWithItems(20L, user);
 
         assertEquals(20L, dto.shoppingListId());
     }
 
     @Test
     void shouldThrowExceptionWhenShoppingListNotFound() {
-        when(shoppingListRepository.findById(99L))
+        when(shoppingListRepository.findByShoppingListIdAndUser(99L, user))
                 .thenReturn(Optional.empty());
 
         BadRequestException ex = assertThrows(
                 BadRequestException.class,
-                () -> shoppingListService.getShoppingListWithItems(99L)
+                () -> shoppingListService.getShoppingListWithItems(99L, user)
         );
 
         assertEquals("SL1002", ex.getCode());
@@ -124,7 +116,10 @@ public class ShoppingListServiceTest {
 
     @Test
     void shouldCreateAndActivateShoppingList() {
-        ShoppingList result = shoppingListService.createAndActiveShoppingList(user);
+        when(shoppingListRepository.save(any(ShoppingList.class)))
+                .thenAnswer(i -> i.getArgument(0));
+
+        ShoppingList result = shoppingListService.getOrActiveShoppingList(user);
 
         assertTrue(result.isActive());
         assertEquals(user, result.getUser());
@@ -174,7 +169,7 @@ public class ShoppingListServiceTest {
 
     @Test
     void shouldThrowExceptionWhenUpdatingNonExistingItem() {
-        when(shoppingListItemRepository.findById(1L))
+        when(shoppingListItemRepository.findByIdAndShoppingList_User(1L, user))
                 .thenReturn(Optional.empty());
 
         ShoppingListItemUpdateRequest request =
@@ -182,7 +177,7 @@ public class ShoppingListServiceTest {
 
         BadRequestException ex = assertThrows(
                 BadRequestException.class,
-                () -> shoppingListService.updateShoppingListItem(1L, request)
+                () -> shoppingListService.updateShoppingListItem(1L, user, request)
         );
 
         assertEquals("SL1004", ex.getCode());
@@ -194,13 +189,13 @@ public class ShoppingListServiceTest {
         item.setPurchasedQuantity(BigDecimal.ONE);
         item.setUnitaryPrice(BigDecimal.TEN);
 
-        when(shoppingListItemRepository.findById(1L))
+        when(shoppingListItemRepository.findByIdAndShoppingList_User(1L, user))
                 .thenReturn(Optional.of(item));
 
         ShoppingListItemUpdateRequest request =
                 new ShoppingListItemUpdateRequest(BigDecimal.TWO, BigDecimal.TEN);
 
-        shoppingListService.updateShoppingListItem(1L, request);
+        shoppingListService.updateShoppingListItem(1L, user, request);
 
         verify(item).recalculateSubtotal();
         verify(shoppingListItemRepository).save(item);
@@ -210,13 +205,12 @@ public class ShoppingListServiceTest {
     void shouldDeleteShoppingListItem() {
         ShoppingListItem item = new ShoppingListItem();
 
-        when(shoppingListItemRepository.findById(1L))
+        when(shoppingListItemRepository.findByIdAndShoppingList_User(1L, user))
                 .thenReturn(Optional.of(item));
 
-        shoppingListService.deleteShoppingListItemById(1L);
+        shoppingListService.deleteShoppingListItem(1L, user);
 
-        verify(shoppingListItemRepository).deleteById(1L);
+        verify(shoppingListItemRepository).delete(item);
     }
-
 
 }
