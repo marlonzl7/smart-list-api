@@ -27,7 +27,7 @@ public class PasswordResetController {
 
     @GetMapping("/validate")
     public ResponseEntity<ApiResponse<Void>> validatePasswordResetToken(@RequestParam UUID token) {
-        passwordResetService.validateToken(token);
+        passwordResetService.getValidToken(token);
         return ResponseEntity.ok(new ApiResponse<>(true, "Token válido.", null));
     }
 
