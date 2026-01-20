@@ -1,9 +1,9 @@
 package com.smartlist.api.inventory.item.controller;
 
 import com.smartlist.api.infra.common.dto.PageResponse;
-import com.smartlist.api.inventory.item.dto.ItemListResponseDTO;
-import com.smartlist.api.inventory.item.dto.ItemRegisterRequestDTO;
-import com.smartlist.api.inventory.item.dto.ItemUpdateRequestDTO;
+import com.smartlist.api.inventory.item.dto.ItemListResponse;
+import com.smartlist.api.inventory.item.dto.ItemRegisterRequest;
+import com.smartlist.api.inventory.item.dto.ItemUpdateRequest;
 import com.smartlist.api.inventory.item.service.ItemService;
 import com.smartlist.api.shared.dto.ApiResponse;
 import com.smartlist.api.user.model.User;
@@ -27,11 +27,11 @@ public class ItemController {
     }
 
     @GetMapping
-    public ResponseEntity<ApiResponse<PageResponse<ItemListResponseDTO>>> list(@AuthenticationPrincipal UserDetailsImpl userDetails, @PageableDefault(size = 10) Pageable pageable) {
+    public ResponseEntity<ApiResponse<PageResponse<ItemListResponse>>> list(@AuthenticationPrincipal UserDetailsImpl userDetails, @PageableDefault(size = 10) Pageable pageable) {
         User user = userDetails.getUser();
-        Page<ItemListResponseDTO> items = itemService.list(user, pageable);
+        Page<ItemListResponse> items = itemService.list(user, pageable);
 
-        PageResponse<ItemListResponseDTO> response = new PageResponse<>();
+        PageResponse<ItemListResponse> response = new PageResponse<>();
         response.setContent(items.getContent());
         response.setPageNumber(items.getNumber());
         response.setPageSize(items.getSize());
@@ -43,14 +43,14 @@ public class ItemController {
     }
 
     @PostMapping
-    public ResponseEntity<ApiResponse<Void>> register(@RequestBody @Valid ItemRegisterRequestDTO requestDTO, @AuthenticationPrincipal UserDetailsImpl userDetails) {
+    public ResponseEntity<ApiResponse<Void>> register(@RequestBody @Valid ItemRegisterRequest requestDTO, @AuthenticationPrincipal UserDetailsImpl userDetails) {
         User user = userDetails.getUser();
         itemService.register(requestDTO, user);
         return ResponseEntity.ok(new ApiResponse<>(true, "Item cadastrado com sucesso.", null));
     }
 
     @PatchMapping("{itemId}")
-    public ResponseEntity<ApiResponse<Void>> update(@PathVariable Long itemId, @RequestBody @Valid ItemUpdateRequestDTO requestDTO, @AuthenticationPrincipal UserDetailsImpl userDetails) {
+    public ResponseEntity<ApiResponse<Void>> update(@PathVariable Long itemId, @RequestBody @Valid ItemUpdateRequest requestDTO, @AuthenticationPrincipal UserDetailsImpl userDetails) {
         User user = userDetails.getUser();
         itemService.update(itemId, requestDTO, user);
         return ResponseEntity.ok(new ApiResponse<>(true, "Item atualizado com sucesso", null));
