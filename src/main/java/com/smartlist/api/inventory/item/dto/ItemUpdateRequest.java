@@ -9,7 +9,7 @@ import jakarta.validation.constraints.NotNull;
 
 import java.math.BigDecimal;
 
-public record ItemUpdateRequestDTO(
+public record ItemUpdateRequest(
         @NotBlank
         String name,
 
@@ -35,7 +35,6 @@ public record ItemUpdateRequestDTO(
         @Min(0)
         Integer criticalQuantityDaysOverride,
 
-        @NotNull
         Long categoryId
 ) {
 }

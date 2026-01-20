@@ -3,7 +3,7 @@ package com.smartlist.api.user.dto;
 import com.smartlist.api.user.enums.NotificationPreference;
 import jakarta.validation.constraints.*;
 
-public record RegisterDTO(
+public record UserRegisterRequest(
         @NotBlank(message = "Email é obrigatório.")
         @Email(message = "Email inválido.")
         String email,
@@ -20,7 +20,7 @@ public record RegisterDTO(
         @NotNull(message = "Preferência de notificação é obrigatória.")
         NotificationPreference notificationPreference,
 
-        @Min(0)
+        @Min(value = 0, message = "Dias críticos não pode ser negativo.")
         Integer criticalQuantityDays
 )
 {}
