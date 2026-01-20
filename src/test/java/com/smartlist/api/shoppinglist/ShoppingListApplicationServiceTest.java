@@ -6,7 +6,7 @@ import com.smartlist.api.inventory.item.repository.ItemRepository;
 import com.smartlist.api.inventory.item.service.ItemService;
 import com.smartlist.api.inventory.service.InventoryApplicationService;
 import com.smartlist.api.shoppinglist.dto.FinalizePurchaseRequest;
-import com.smartlist.api.shoppinglist.dto.PurchasedItemDTO;
+import com.smartlist.api.shoppinglist.dto.PurchasedItemRequest;
 import com.smartlist.api.shoppinglist.model.ShoppingList;
 import com.smartlist.api.shoppinglist.repository.ShoppingListRepository;
 import com.smartlist.api.shoppinglist.service.ShoppingListApplicationService;
@@ -95,8 +95,8 @@ class ShoppingListApplicationServiceTest {
     void shouldFinalizeShoppingListSuccessfully() {
         FinalizePurchaseRequest request = new FinalizePurchaseRequest(
                 List.of(
-                        new PurchasedItemDTO(1L, new BigDecimal("2"), new BigDecimal("5.00")),
-                        new PurchasedItemDTO(2L, new BigDecimal("1"), new BigDecimal("10.00"))
+                        new PurchasedItemRequest(1L, new BigDecimal("2"), new BigDecimal("5.00")),
+                        new PurchasedItemRequest(2L, new BigDecimal("1"), new BigDecimal("10.00"))
                 )
         );
 
@@ -130,7 +130,7 @@ class ShoppingListApplicationServiceTest {
     void shouldThrowExceptionWhenPurchasedQuantityIsNegative() {
         FinalizePurchaseRequest request = new FinalizePurchaseRequest(
                 List.of(
-                        new PurchasedItemDTO(1L, new BigDecimal("-1"), new BigDecimal("5.00"))
+                        new PurchasedItemRequest(1L, new BigDecimal("-1"), new BigDecimal("5.00"))
                 )
         );
 
@@ -150,7 +150,7 @@ class ShoppingListApplicationServiceTest {
     void shouldThrowExceptionWhenUnitaryPriceIsNull() {
         FinalizePurchaseRequest request = new FinalizePurchaseRequest(
                 List.of(
-                        new PurchasedItemDTO(1L, new BigDecimal("2"), null)
+                        new PurchasedItemRequest(1L, new BigDecimal("2"), null)
                 )
         );
 
@@ -170,7 +170,7 @@ class ShoppingListApplicationServiceTest {
     void shouldResetItemValuesWhenItemIsNotPresentInRequest() {
         FinalizePurchaseRequest request = new FinalizePurchaseRequest(
                 List.of(
-                        new PurchasedItemDTO(1L, new BigDecimal("2"), new BigDecimal("5.00"))
+                        new PurchasedItemRequest(1L, new BigDecimal("2"), new BigDecimal("5.00"))
                 )
         );
 

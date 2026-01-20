@@ -2,10 +2,10 @@ package com.smartlist.api.passwordreset.service;
 
 import com.smartlist.api.infra.config.PasswordResetProperties;
 import com.smartlist.api.infra.config.RateLimitProperties;
-import com.smartlist.api.email.service.EmailService;
+import com.smartlist.api.notification.email.service.EmailService;
 import com.smartlist.api.exceptions.BadRequestException;
-import com.smartlist.api.passwordreset.dto.PasswordExchangeDTO;
-import com.smartlist.api.passwordreset.dto.PasswordResetRequestDTO;
+import com.smartlist.api.passwordreset.dto.PasswordExchangeRequest;
+import com.smartlist.api.passwordreset.dto.PasswordResetRequest;
 import com.smartlist.api.passwordreset.enums.PasswordResetTokenStatus;
 import com.smartlist.api.passwordreset.model.PasswordResetToken;
 import com.smartlist.api.passwordreset.repository.PasswordResetTokenRepository;
@@ -60,27 +60,27 @@ public class PasswordResetService {
         this.rateLimitDurationSeconds = rateLimitProperties.getDuration();
     }
 
-    public void requestPasswordReset(PasswordResetRequestDTO passwordResetRequestDTO) {
-        log.info("Iniciando requisição de redefinição de senha para email: {}", passwordResetRequestDTO.email());
+    public void requestPasswordReset(PasswordResetRequest dto) {
+        log.info("Requisição de redefinição de senha recebida");
 
-        validateRequestRateLimit(passwordResetRequestDTO.email(), passwordResetRequestDTO.requestIp());
+        validateRequestRateLimit(dto.email(), dto.requestIp());
 
-        var userOptional = userService.findByEmail(passwordResetRequestDTO.email());
+        var userOptional = userService.findByEmail(dto.email());
 
         if (userOptional.isEmpty()) {
-            log.warn("Tentativa de redefinição de senha com email não registrado: {}", passwordResetRequestDTO.email());
+            log.warn("Tentativa de redefinição de senha para email inexistente");
             return;
         }
 
         var user = userOptional.get();
 
-        PasswordResetToken passwordResetToken = generateAndSaveToken(user, passwordResetRequestDTO);
+        PasswordResetToken passwordResetToken = generateAndSaveToken(user, dto);
         log.debug("Token de redefinição gerado com sucesso para usuário com ID: {}", user.getUserId());
 
         String resetLink = passwordResetLink + passwordResetToken.getToken();
         emailService.sendPasswordResetEmail(user.getEmail(), resetLink);
 
-        log.info("Email de redefinição de senha enviado para: {}", user.getEmail());
+        log.info("Email de redefinição de senha enviado com sucesso");
     }
 
     private void validateRequestRateLimit(String email, String requestIp) {
@@ -114,7 +114,7 @@ public class PasswordResetService {
         }
     }
 
-    private PasswordResetToken generateAndSaveToken(User user, PasswordResetRequestDTO dto) {
+    private PasswordResetToken generateAndSaveToken(User user, PasswordResetRequest dto) {
         UUID token = generateResetToken();
         Instant expiresAt = Instant.now().plusSeconds(tokenExpirationSeconds);
 
@@ -132,41 +132,38 @@ public class PasswordResetService {
         PasswordResetToken saved = passwordResetTokenRepository.save(passwordResetToken);
         log.debug("Token salvo no banco para usuário ID: {}", user.getUserId());
 
+        passwordResetTokenRepository.expireAllPendingByUser(user);
+        log.debug("Token anteriores invelidados para usuário ID: {}", user.getUserId());
+
         return saved;
     }
 
     private PasswordResetToken getValidToken(UUID token) {
-        log.debug("Validando token de redefinição de senha recebido: {}", token);
+        log.debug("Validando token de redefinição de senha recebido");
         PasswordResetToken resetToken = passwordResetTokenRepository.findByToken(token).orElseThrow(() -> {
-            log.warn("Token de redefinição de senha não encontrado: {}", token);
+            log.warn("Token de redefinição de senha não encontrado");
             return new BadRequestException("P3004", "Token não encontrado");
         });
 
         if (resetToken.getExpiresAt().isBefore(Instant.now())) {
-            log.warn("Token expirado: {}", token);
+            log.warn("Token de redefinição expirado.");
             resetToken.setStatus(PasswordResetTokenStatus.EXPIRED);
             passwordResetTokenRepository.save(resetToken);
             throw new BadRequestException("P3005", "Token expirado");
         }
 
         if (resetToken.getStatus() != PasswordResetTokenStatus.PENDING) {
-            log.warn("Token inválido ou já utilizado: {}. Status atual: {}", token, resetToken.getStatus());
+            log.warn("Token inválido ou já utilizado. Status atual.");
             throw new BadRequestException("P3006", "Token inválido ou já utilizado");
         }
 
-        log.debug("Token validado com sucesso: {}", token);
+        log.debug("Token validado com sucesso.");
         return resetToken;
     }
 
-    public boolean validateToken(UUID token) {
-        log.debug("Verificando validade do token: {}", token);
-        getValidToken(token);
-        return true;
-    }
-
-    public void resetPassword(PasswordExchangeDTO passwordExchangeDTO) {
-        log.info("Redefinindo senha para token: {}", passwordExchangeDTO.token());
-        PasswordResetToken resetToken = getValidToken(passwordExchangeDTO.token());
+    public void resetPassword(PasswordExchangeRequest dto) {
+        log.info("Processo de redefinição de senha iniciado");
+        PasswordResetToken resetToken = getValidToken(dto.token());
 
         String email = resetToken.getEmail();
         log.debug("Buscando usuário com email associado ao token: {}", email);
@@ -177,16 +174,16 @@ public class PasswordResetService {
         });
 
         log.debug("Validando força da nova senha para o usuário ID: {}", user.getUserId());
-        passwordStrengthService.validatePasswordStrength(passwordExchangeDTO.newPassword());
+        passwordStrengthService.validatePasswordStrength(dto.newPassword());
+
+        user.setPassword(passwordEncoder.encode(dto.newPassword()));
+        userRepository.save(user);
 
         resetToken.setStatus(PasswordResetTokenStatus.USED);
         passwordResetTokenRepository.save(resetToken);
-        log.debug("Token de reset marcado como usado: {}", resetToken.getToken());
+        log.debug("Token de redefinição marcado como usado");
 
-        user.setPassword(passwordEncoder.encode(passwordExchangeDTO.newPassword()));
-        userRepository.save(user);
-
-        log.info("Senha redefinida com sucesso para o usuário ID: {} (email: {})", user.getUserId(), user.getEmail());
+        log.info("Senha redefinida com sucesso para o usuário ID: {}", user.getUserId());
     }
 
     public UUID generateResetToken() {

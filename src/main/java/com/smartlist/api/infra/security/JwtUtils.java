@@ -65,8 +65,7 @@ public class JwtUtils {
         try {
             getClaimsFromToken(token);
             return true;
-        } catch (JwtException e) {
-
+        } catch (Exception e) {
             return false;
         }
     }

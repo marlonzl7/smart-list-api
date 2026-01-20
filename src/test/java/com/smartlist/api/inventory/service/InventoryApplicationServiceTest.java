@@ -35,7 +35,7 @@ public class InventoryApplicationServiceTest {
         when(itemRepository.findByUser(user))
                 .thenReturn(List.of(item1, item2));
 
-        inventoryApplicationService.onItemUpdated(user);
+        inventoryApplicationService.refreshInventory(user);
 
         verify(inventoryService, times(2))
                 .processItem(any(Item.class));
