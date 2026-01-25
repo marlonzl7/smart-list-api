@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS item (
     avg_consumption_per_day NUMERIC(10, 3) NOT NULL,
     price NUMERIC(10, 2) NOT NULL,
     in_shopping_list BOOLEAN DEFAULT FALSE,
-    last_stock_update TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_stock_update DATE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     critical_quantity_days_override INT DEFAULT 5,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
