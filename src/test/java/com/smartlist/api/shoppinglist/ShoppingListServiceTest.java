@@ -169,7 +169,7 @@ public class ShoppingListServiceTest {
 
     @Test
     void shouldThrowExceptionWhenUpdatingNonExistingItem() {
-        when(shoppingListItemRepository.findByIdAndShoppingList_User(1L, user))
+        when(shoppingListItemRepository.findByShoppingListItemIdAndShoppingList_User(1L, user))
                 .thenReturn(Optional.empty());
 
         ShoppingListItemUpdateRequest request =
