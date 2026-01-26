@@ -28,5 +28,5 @@ public interface ShoppingListItemRepository extends JpaRepository<ShoppingListIt
            """)
     List<ShoppingListItemResponse> findItemsByShoppingListId(@Param("shoppingListId") Long shoppingListId);
     boolean existsByShoppingListAndItem(ShoppingList shoppingList, Item item);
-    Optional<ShoppingListItem> findByIdAndShoppingList_User(Long shoppingListItemId, User user);
+    Optional<ShoppingListItem> findByShoppingListItemIdAndShoppingList_User(Long shoppingListItemId, User user);
 }

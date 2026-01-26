@@ -80,7 +80,7 @@ public class ShoppingListService {
 
     public void updateShoppingListItem(Long shoppingListItemId, User user, ShoppingListItemUpdateRequest dto) {
         ShoppingListItem item = shoppingListItemRepository
-                .findByIdAndShoppingList_User(shoppingListItemId, user)
+                .findByShoppingListItemIdAndShoppingList_User(shoppingListItemId, user)
                 .orElseThrow(() -> new BadRequestException("SL1004", "Item inexistente"));
 
         boolean changed = false;
@@ -110,7 +110,7 @@ public class ShoppingListService {
 
     public void deleteShoppingListItem(Long shoppingListItemId, User user) {
         ShoppingListItem item = shoppingListItemRepository
-                .findByIdAndShoppingList_User(shoppingListItemId, user)
+                .findByShoppingListItemIdAndShoppingList_User(shoppingListItemId, user)
                 .orElseThrow(() -> new BadRequestException("SL1005", "Item inexistente"));
 
         shoppingListItemRepository.delete(item);
