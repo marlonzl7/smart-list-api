@@ -15,18 +15,20 @@ import java.util.Optional;
 public interface ShoppingListItemRepository extends JpaRepository<ShoppingListItem, Long> {
 
     @Query("""
-           SELECT new com.smartlist.api.shoppinglistitem.dto.ShoppingListItemDTO(
-               sli.shoppingListItemId,
-               i.name,
-               sli.purchasedQuantity,
-               sli.unitaryPrice,
-               sli.subtotal
-           )
-           FROM ShoppingListItem sli
-           JOIN sli.item i
-           WHERE sli.shoppingList.shoppingListId = :shoppingListId
-           """)
-    List<ShoppingListItemResponse> findItemsByShoppingListId(@Param("shoppingListId") Long shoppingListId);
+       SELECT new com.smartlist.api.shoppinglistitem.dto.ShoppingListItemResponse(
+           sli.shoppingListItemId,
+           i.name,
+           sli.purchasedQuantity,
+           sli.unitaryPrice,
+           sli.subtotal
+       )
+       FROM ShoppingListItem sli
+       JOIN sli.item i
+       WHERE sli.shoppingList.shoppingListId = :shoppingListId
+       """)
+    List<ShoppingListItemResponse> findItemsByShoppingListId(
+            @Param("shoppingListId") Long shoppingListId
+    );
     boolean existsByShoppingListAndItem(ShoppingList shoppingList, Item item);
-    Optional<ShoppingListItem> findByIdAndShoppingList_User(Long shoppingListItemId, User user);
+    Optional<ShoppingListItem> findByShoppingListItemIdAndShoppingList_User(Long shoppingListItemId, User user);
 }
