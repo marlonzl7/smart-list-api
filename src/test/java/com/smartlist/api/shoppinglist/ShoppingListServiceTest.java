@@ -189,7 +189,7 @@ public class ShoppingListServiceTest {
         item.setPurchasedQuantity(BigDecimal.ONE);
         item.setUnitaryPrice(BigDecimal.TEN);
 
-        when(shoppingListItemRepository.findByIdAndShoppingList_User(1L, user))
+        when(shoppingListItemRepository.findByShoppingListItemIdAndShoppingList_User(1L, user))
                 .thenReturn(Optional.of(item));
 
         ShoppingListItemUpdateRequest request =
@@ -205,7 +205,7 @@ public class ShoppingListServiceTest {
     void shouldDeleteShoppingListItem() {
         ShoppingListItem item = new ShoppingListItem();
 
-        when(shoppingListItemRepository.findByIdAndShoppingList_User(1L, user))
+        when(shoppingListItemRepository.findByShoppingListItemIdAndShoppingList_User(1L, user))
                 .thenReturn(Optional.of(item));
 
         shoppingListService.deleteShoppingListItem(1L, user);
