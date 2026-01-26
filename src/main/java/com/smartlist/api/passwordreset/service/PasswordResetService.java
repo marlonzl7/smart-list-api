@@ -17,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.validator.routines.InetAddressValidator;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -114,6 +115,7 @@ public class PasswordResetService {
         }
     }
 
+    @Transactional
     private PasswordResetToken generateAndSaveToken(User user, PasswordResetRequest dto) {
         UUID token = generateResetToken();
         Instant expiresAt = Instant.now().plusSeconds(tokenExpirationSeconds);
