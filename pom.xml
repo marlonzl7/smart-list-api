@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>com.smartlist</groupId>
 	<artifactId>smartlist-api</artifactId>
-	<version>1.0.3</version>
+	<version>1.0.4</version>
 	<name>smartlist-api</name>
 	<description>Demo project for Spring Boot</description>
 	<url/>
