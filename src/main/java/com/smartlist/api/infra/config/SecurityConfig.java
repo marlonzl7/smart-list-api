@@ -4,6 +4,7 @@ import com.smartlist.api.infra.security.JwtAuthenticationFilter;
 import com.smartlist.api.infra.security.JwtUtils;
 import com.smartlist.api.infra.security.PublicEndpoints;
 import com.smartlist.api.user.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -27,13 +28,12 @@ public class SecurityConfig {
 
     private final JwtUtils jwtUtils;
     private final UserRepository userRepository;
+    private final CorsProperties corsProperties;
 
-    @Value("${app.cors.allowed-origins}")
-    private List<String> allowedOrigins;
-
-    public SecurityConfig(JwtUtils jwtUtils, UserRepository userRepository) {
+    public SecurityConfig(JwtUtils jwtUtils, UserRepository userRepository, CorsProperties corsProperties) {
         this.jwtUtils = jwtUtils;
         this.userRepository = userRepository;
+        this.corsProperties = corsProperties;
     }
 
     @Bean
@@ -49,7 +49,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(allowedOrigins);
+        config.setAllowedOrigins(corsProperties.getAllowedOrigins());
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of(
                 "Authorization",

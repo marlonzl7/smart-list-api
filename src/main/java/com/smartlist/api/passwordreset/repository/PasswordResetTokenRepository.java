@@ -18,9 +18,9 @@ public interface PasswordResetTokenRepository extends JpaRepository<PasswordRese
     @Modifying
     @Query("""
             UPDATE PasswordResetToken prt
-            SET prt.status = com.smartlist.api.passwordreset.enums.PasswordResetTokenStatus.EXPIRED
+            SET prt.status = PasswordResetTokenStatus.EXPIRED
             WHERE prt.user = :user
-                AND prt.status = com.smartlist.api.passwordreset.enumsPasswordResetTokenStatus.PENDING
+            AND prt.status = PasswordResetTokenStatus.PENDING
     """)
     void expireAllPendingByUser(User user);
 }
